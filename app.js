@@ -5,7 +5,7 @@ const supabaseUrl = 'https://dorkygsgobhcagtqydjb.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvcmt5Z3Nnb2JoY2FndHF5ZGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwOTc0MzcsImV4cCI6MjA3NjY3MzQzN30.bNCo8Ijj2DIr-c34P7U-lb6QK69D8OzO2sCd6SOwaW0'
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-let currentDate = new Date();
+let currentDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
 let currentLocationId = null;
 let locations = [];
 
@@ -135,7 +135,11 @@ function setupEventListeners() {
             alert('Please select a location first.');
             return;
         }
-        currentDate.setMonth(currentDate.getMonth() - 1);
+        // Create new date in Malaysia timezone
+        const newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() - 1);
+        // Convert to Malaysia timezone
+        currentDate = new Date(newDate.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
         renderCalendar();
     });
 
@@ -144,7 +148,9 @@ function setupEventListeners() {
             alert('Please select a location first.');
             return;
         }
-        currentDate.setMonth(currentDate.getMonth() + 1);
+        const newDate = new Date(currentDate);
+        newDate.setMonth(newDate.getMonth() + 1);
+        currentDate = new Date(newDate.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
         renderCalendar();
     });
 }
@@ -153,7 +159,6 @@ async function renderCalendar() {
     const calendar = document.getElementById('calendar');
     const monthYear = document.getElementById('currentMonth');
     
-    const todayMalaysia = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
     const year = todayMalaysia.getFullYear();
     const month = todayMalaysia.getMonth();
     
