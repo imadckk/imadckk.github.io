@@ -60,7 +60,7 @@
       grid-template-columns: repeat(7, 1fr);
       gap: 3px;
     }
-
+    
     .calendar-day {
       height: 45px;
       display: flex;
@@ -71,25 +71,34 @@
       cursor: pointer;
       transition: background-color 0.2s ease, transform 0.1s ease;
     }
-
-    .calendar-day:hover {
-      background-color: #f1f3f5;
-      transform: scale(1.05);
-    }
-
+    
+    /* Active days can be clicked/interacted with */
     .active-day {
       background-color: #d4edda;
       color: #155724;
       font-weight: 600;
     }
-
+    
+    .active-day:hover {
+      background-color: #c3e6cb; /* Slightly darker green */
+      transform: scale(1.05);
+    }
+    
+    /* Inactive days are non-interactive */
     .inactive-day {
-      background-color: #f8d7da;
-      color: #721c24;
+      background-color: #f8d7da !important; /* Force with !important */
+      color: #721c24 !important;
       text-decoration: line-through;
       font-weight: 600;
+      cursor: not-allowed !important; /* Show "not allowed" cursor */
+      opacity: 0.7; /* Make it look disabled */
     }
-
+    
+    /* Remove hover effect for inactive days */
+    .inactive-day:hover {
+      background-color: #f8d7da !important; /* No change on hover */
+      transform: none !important; /* No scale on hover */
+    }
     .other-month {
       opacity: 0.4;
     }
