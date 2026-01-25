@@ -307,7 +307,7 @@ function getDayStatus(dateString, dateSettings) {
     }
 
     // RULE 2: Must be at least 2 FULL days in advance
-    if (dateString < cutoffFormatted) {
+    if (dateString <= cutoffFormatted) {
         console.log('Blocked: Within 2-day advance window');
         return false;
     }
