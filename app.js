@@ -159,8 +159,8 @@ async function renderCalendar() {
     const calendar = document.getElementById('calendar');
     const monthYear = document.getElementById('currentMonth');
     
-    const year = todayMalaysia.getFullYear();
-    const month = todayMalaysia.getMonth();
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
     
     monthYear.textContent = currentDate.toLocaleString('default', { 
         month: 'long', 
