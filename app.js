@@ -5,7 +5,7 @@ const supabaseUrl = 'https://dorkygsgobhcagtqydjb.supabase.co'
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvcmt5Z3Nnb2JoY2FndHF5ZGpiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEwOTc0MzcsImV4cCI6MjA3NjY3MzQzN30.bNCo8Ijj2DIr-c34P7U-lb6QK69D8OzO2sCd6SOwaW0'
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-let currentDate = new Date();
+let currentDate = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
 let currentLocationId = null;
 let locations = [];
 
@@ -153,8 +153,9 @@ async function renderCalendar() {
     const calendar = document.getElementById('calendar');
     const monthYear = document.getElementById('currentMonth');
     
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    const todayMalaysia = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+    const year = todayMalaysia.getFullYear();
+    const month = todayMalaysia.getMonth();
     
     monthYear.textContent = currentDate.toLocaleString('default', { 
         month: 'long', 
@@ -305,50 +306,47 @@ function getDayStatus(dateString, dateSettings) {
     // Get today's date in Malaysia timezone
     const now = new Date();
     const todayMalaysia = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+    
+    // Format consistently
     const todayFormatted = todayMalaysia.getFullYear() + '-' + 
                           String(todayMalaysia.getMonth() + 1).padStart(2, '0') + '-' + 
                           String(todayMalaysia.getDate()).padStart(2, '0');
 
-    // Parse input date
-    const inputDate = new Date(dateString + 'T00:00:00');
-    const dayOfWeek = inputDate.getUTCDay(); // 0 = Sunday
+    // Parse input date IN MALAYSIA TIMEZONE
+    const inputDate = new Date(dateString + 'T00:00:00+08:00');
+    const dayOfWeek = inputDate.getUTCDay();
     
-    // Calculate cutoff date (today + 2 days)
+    // Calculate cutoff (today + 2 calendar days)
     const cutoffDate = new Date(todayMalaysia);
     cutoffDate.setDate(cutoffDate.getDate() + 2);
     const cutoffFormatted = cutoffDate.getFullYear() + '-' + 
                            String(cutoffDate.getMonth() + 1).padStart(2, '0') + '-' + 
                            String(cutoffDate.getDate()).padStart(2, '0');
 
-    console.log('Date comparison:', {
-        dateString,
-        todayMalaysia: todayFormatted,
-        cutoffDate: cutoffFormatted,
-        isWithin2Days: dateString < cutoffFormatted,
-        dayOfWeek
+    console.log('Date check:', {
+        checking: dateString,
+        today: todayFormatted,
+        cutoff: cutoffFormatted,
+        isBeforeCutoff: dateString < cutoffFormatted,
+        isSunday: dayOfWeek === 0,
+        todayIsSunday: todayMalaysia.getDay() === 0
     });
 
-    // RULE 1: Must be at least 2 days in advance (strict: < cutoff, not <=)
-    // If today is 1st, only 3rd and later are available
+    // RULE 1: Must be at least 2 FULL days in advance
     if (dateString < cutoffFormatted) {
         return false;
     }
 
-    // RULE 2: Sundays are completely unavailable (no exceptions)
+    // RULE 2: No Sundays ever
     if (dayOfWeek === 0) {
         return false;
     }
 
-    // RULE 3: Special case: If today is Sunday, apply normal 2-day rule
-    // The function already handles this - if today is Sunday, 
-    // cutoffDate will be Tuesday, and Wednesday will be available
-
-    // RULE 4: Supabase settings override everything (if defined)
+    // RULE 3: Check Supabase overrides
     const setting = dateSettings.find(s => s.date === dateString);
     if (setting) {
         return setting.is_active;
     }
 
-    // Default: Available if it passes all rules
     return true;
 }
