@@ -62,7 +62,7 @@ function updateLocationButtons() {
     
       // Assign color based on position
       if (index === 0) {
-        button.classList.add('btn-purple');
+        button.classList.add('btn-red');
       } else if (index === 1) {
         button.classList.add('btn-blue');
       }
