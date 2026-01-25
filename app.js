@@ -267,44 +267,7 @@ async function loadDateSettingsForMonth(year, month) {
     }
 }
 
-// function getDayStatus(dateString, dateSettings) {
-//     if (!currentLocationId) return true;
 
-//     // Get today's date in Malaysia timezone as YYYY-MM-DD
-//     const now = new Date();
-//     const todayMalaysia = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
-//     const todayFormatted = todayMalaysia.getFullYear() + '-' + 
-//                           String(todayMalaysia.getMonth() + 1).padStart(2, '0') + '-' + 
-//                           String(todayMalaysia.getDate()).padStart(2, '0');
-
-//     const dayOfWeek = new Date(dateString).getUTCDay(); // 0 = Sunday
-
-//     console.log('Date comparison:', {
-//         dateString,
-//         todayMalaysia: todayFormatted,
-//         isPastOrToday: dateString <= todayFormatted,
-//         dayOfWeek
-//     });
-
-//     // Rule 1: Past dates and today are unavailable
-//     if (dateString <= todayFormatted) {
-//         return false;
-//     }
-
-//     // Rule 2: Sundays are unavailable
-//     if (dayOfWeek === 0) {
-//         return false;
-//     }
-
-//     // Rule 3: Use Supabase settings (if defined)
-//     const setting = dateSettings.find(s => s.date === dateString);
-//     if (setting) {
-//         return setting.is_active;
-//     }
-
-//     // Default: available unless rules above block it
-//     return true;
-// }
 function getDayStatus(dateString, dateSettings) {
     if (!currentLocationId) return true;
 
@@ -318,8 +281,8 @@ function getDayStatus(dateString, dateSettings) {
                           String(todayMalaysia.getDate()).padStart(2, '0');
 
     // Parse input date IN MALAYSIA TIMEZONE
-    const inputDate = new Date(dateString + 'T00:00:00+08:00');
-    const dayOfWeek = inputDate.getUTCDay();
+    const inputDate = new Date(dateString + 'T00:00:00Z'); // Use UTC
+    const dayOfWeek = inputDate.getUTCDay(); // Now consistent
     
     // Calculate cutoff (today + 2 calendar days)
     const cutoffDate = new Date(todayMalaysia);
