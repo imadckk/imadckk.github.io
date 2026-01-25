@@ -300,21 +300,25 @@ function getDayStatus(dateString, dateSettings) {
         todayIsSunday: todayMalaysia.getDay() === 0
     });
 
-    // RULE 1: Must be at least 2 FULL days in advance
-    if (dateString < cutoffFormatted) {
+    // RULE 1: No Sundays ever (MUST BE FIRST!)
+    if (dayOfWeek === 0) {
+        console.log('Blocked: Sunday');
         return false;
     }
 
-    // RULE 2: No Sundays ever
-    if (dayOfWeek === 0) {
+    // RULE 2: Must be at least 2 FULL days in advance
+    if (dateString < cutoffFormatted) {
+        console.log('Blocked: Within 2-day advance window');
         return false;
     }
 
     // RULE 3: Check Supabase overrides
     const setting = dateSettings.find(s => s.date === dateString);
     if (setting) {
+        console.log('Using Supabase override:', setting.is_active);
         return setting.is_active;
     }
 
+    console.log('Available: Passed all rules');
     return true;
 }
