@@ -261,41 +261,94 @@ async function loadDateSettingsForMonth(year, month) {
     }
 }
 
+// function getDayStatus(dateString, dateSettings) {
+//     if (!currentLocationId) return true;
+
+//     // Get today's date in Malaysia timezone as YYYY-MM-DD
+//     const now = new Date();
+//     const todayMalaysia = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+//     const todayFormatted = todayMalaysia.getFullYear() + '-' + 
+//                           String(todayMalaysia.getMonth() + 1).padStart(2, '0') + '-' + 
+//                           String(todayMalaysia.getDate()).padStart(2, '0');
+
+//     const dayOfWeek = new Date(dateString).getUTCDay(); // 0 = Sunday
+
+//     console.log('Date comparison:', {
+//         dateString,
+//         todayMalaysia: todayFormatted,
+//         isPastOrToday: dateString <= todayFormatted,
+//         dayOfWeek
+//     });
+
+//     // Rule 1: Past dates and today are unavailable
+//     if (dateString <= todayFormatted) {
+//         return false;
+//     }
+
+//     // Rule 2: Sundays are unavailable
+//     if (dayOfWeek === 0) {
+//         return false;
+//     }
+
+//     // Rule 3: Use Supabase settings (if defined)
+//     const setting = dateSettings.find(s => s.date === dateString);
+//     if (setting) {
+//         return setting.is_active;
+//     }
+
+//     // Default: available unless rules above block it
+//     return true;
+// }
 function getDayStatus(dateString, dateSettings) {
     if (!currentLocationId) return true;
 
-    // Get today's date in Malaysia timezone as YYYY-MM-DD
+    // Get today's date in Malaysia timezone
     const now = new Date();
     const todayMalaysia = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
     const todayFormatted = todayMalaysia.getFullYear() + '-' + 
                           String(todayMalaysia.getMonth() + 1).padStart(2, '0') + '-' + 
                           String(todayMalaysia.getDate()).padStart(2, '0');
 
-    const dayOfWeek = new Date(dateString).getUTCDay(); // 0 = Sunday
+    // Parse input date
+    const inputDate = new Date(dateString + 'T00:00:00');
+    const dayOfWeek = inputDate.getUTCDay(); // 0 = Sunday
+    
+    // Calculate cutoff date (today + 2 days)
+    const cutoffDate = new Date(todayMalaysia);
+    cutoffDate.setDate(cutoffDate.getDate() + 2);
+    const cutoffFormatted = cutoffDate.getFullYear() + '-' + 
+                           String(cutoffDate.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(cutoffDate.getDate()).padStart(2, '0');
 
     console.log('Date comparison:', {
         dateString,
         todayMalaysia: todayFormatted,
-        isPastOrToday: dateString <= todayFormatted,
+        cutoffDate: cutoffFormatted,
+        isWithin2Days: dateString < cutoffFormatted,
         dayOfWeek
     });
 
-    // Rule 1: Past dates and today are unavailable
-    if (dateString <= todayFormatted) {
+    // RULE 1: Must be at least 2 days in advance (strict: < cutoff, not <=)
+    // If today is 1st, only 3rd and later are available
+    if (dateString < cutoffFormatted) {
         return false;
     }
 
-    // Rule 2: Sundays are unavailable
+    // RULE 2: Sundays are completely unavailable (no exceptions)
     if (dayOfWeek === 0) {
         return false;
     }
 
-    // Rule 3: Use Supabase settings (if defined)
+    // RULE 3: Special case: If today is Sunday, apply normal 2-day rule
+    // The function already handles this - if today is Sunday, 
+    // cutoffDate will be Tuesday, and Wednesday will be available
+
+    // RULE 4: Supabase settings override everything (if defined)
     const setting = dateSettings.find(s => s.date === dateString);
     if (setting) {
         return setting.is_active;
     }
 
-    // Default: available unless rules above block it
+    // Default: Available if it passes all rules
     return true;
 }
