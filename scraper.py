@@ -26,7 +26,6 @@ def setup_driver():
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
     
-    # Use webdriver-manager to automatically get the right ChromeDriver
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     return driver
@@ -40,27 +39,22 @@ def login_with_selenium(driver):
         print(f"   Page loaded: {driver.title}")
         time.sleep(3)
         
-        # Find and fill username
         username_field = driver.find_element(By.ID, "UserName")
         username_field.clear()
         username_field.send_keys(USERNAME)
         print("   ✅ Username entered")
         
-        # Find and fill password
         password_field = driver.find_element(By.ID, "Password")
         password_field.clear()
         password_field.send_keys(PASSWORD)
         print("   ✅ Password entered")
         
-        # Click login button
         login_button = driver.find_element(By.ID, "btnLogin")
         login_button.click()
         print("   ✅ Clicked login button")
         
-        # Wait for redirect
         time.sleep(5)
         
-        # Check if login successful
         current_url = driver.current_url
         print(f"   Current URL: {current_url}")
         
@@ -117,21 +111,29 @@ def get_attendance_for_date(driver, search_date):
                     continue
                 
                 cells = row.find_all('td')
-                if len(cells) >= 5:
+                if len(cells) >= 7:  # Need at least 7 columns for full data
                     student_id = cells[0].get_text(strip=True)
                     class_name = cells[1].get_text(strip=True)
                     date_str = cells[2].get_text(strip=True)
                     class_type = cells[3].get_text(strip=True)
                     present = cells[4].get_text(strip=True) if len(cells) > 4 else "0"
+                    absent = cells[5].get_text(strip=True) if len(cells) > 5 else "0"
+                    late = cells[6].get_text(strip=True) if len(cells) > 6 else "0"
                     
                     if student_id and student_id.isdigit():
+                        # Calculate total students
+                        present_num = int(present) if present.isdigit() else 0
+                        absent_num = int(absent) if absent.isdigit() else 0
+                        late_num = int(late) if late.isdigit() else 0
+                        total_students = present_num + absent_num + late_num
+                        
                         records.append({
                             'date': date_str,
                             'class_id': student_id,
                             'class_name': class_name,
                             'class_type': class_type,
-                            'present_count': present,
-                            'total_students': "0"
+                            'present_count': str(present_num),
+                            'total_students': str(total_students)
                         })
         
         if records:
