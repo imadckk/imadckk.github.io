@@ -123,7 +123,7 @@ def login_with_selenium(driver):
 def get_attendance_for_date(driver, search_date):
     """Fetch attendance data for a specific date"""
     try:
-        formatted_date = search_date.strftime("%m/%d/%Y")
+        formatted_date = search_date.strftime("%d/%m/%Y")
         print(f"  🔍 Checking {formatted_date}...", end=" ", flush=True)
         
         # Navigate to attendance page
