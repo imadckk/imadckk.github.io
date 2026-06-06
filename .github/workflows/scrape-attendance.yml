@@ -1,4 +1,4 @@
-name: Scrape Driving School Attendance
+name: Scrape data
 
 on:
   schedule:
