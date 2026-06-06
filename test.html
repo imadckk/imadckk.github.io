@@ -160,13 +160,35 @@
     .class-item {
       color: #555;
       margin-bottom: 5px;
-      font-size: 0.95em;
       padding: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .class-info {
+      flex: 1;
     }
 
     .attendance-count {
       font-weight: 600;
       color: #28a745;
+    }
+
+    .attendance-count.full {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .full-badge {
+      background-color: #dc3545;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7em;
+      font-weight: bold;
+      margin-left: 8px;
     }
 
     .loading, .no-data, .error {
@@ -213,6 +235,15 @@
         padding: 8px 16px;
         font-size: 14px;
       }
+      .class-item {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .full-badge {
+        margin-left: 0;
+        margin-top: 5px;
+        display: inline-block;
+      }
     }
   </style>
 </head>
@@ -240,7 +271,6 @@
       
       <!-- Tab 1: Location Availability (Original) -->
       <div class="tab-pane fade show active" id="location" role="tabpanel" aria-labelledby="location-tab">
-        <!-- Location Toggle -->
         <div class="d-flex justify-content-center mb-4">
           <div class="btn-group shadow-sm" role="group">
             <button type="button" class="btn location-toggle btn-red" data-location="location-a">
@@ -252,7 +282,6 @@
           </div>
         </div>
 
-        <!-- Calendar Card -->
         <div class="card shadow-sm mx-auto" style="max-width: 800px;">
           <div class="card-header bg-light">
             <div class="d-flex justify-content-between align-items-center">
@@ -268,7 +297,6 @@
           </div>
         </div>
 
-        <!-- Legend -->
         <div class="legend d-flex justify-content-center align-items-center gap-4 mt-4">
           <div class="d-flex align-items-center">
             <div class="legend-box active-day"></div>
@@ -281,7 +309,7 @@
         </div>
       </div>
 
-      <!-- Tab 2: Attendance Summary (New) -->
+      <!-- Tab 2: Attendance Summary -->
       <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
         <div class="card shadow-sm mx-auto" style="max-width: 800px;">
           <div class="card-header bg-light">
@@ -297,7 +325,6 @@
           </div>
         </div>
 
-        <!-- Legend -->
         <div class="legend d-flex justify-content-center align-items-center gap-4 mt-4">
           <div class="d-flex align-items-center">
             <div class="legend-box has-class"></div>
@@ -306,6 +333,10 @@
           <div class="d-flex align-items-center">
             <div class="legend-box no-class"></div>
             <small>No Class</small>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="legend-box" style="background-color: #dc3545;"></div>
+            <small>Full Class</small>
           </div>
         </div>
       </div>
@@ -318,25 +349,21 @@
   <script type="module" src="app.js"></script>
   
   <script>
-    // Attendance data fetching and display
     let currentAttendanceDate = new Date();
     let attendanceData = [];
 
-    // Helper function to parse date in DD/MM/YYYY format
     function parseDateDMY(dateStr) {
       if (!dateStr) return null;
       const parts = dateStr.split('/');
       if (parts.length !== 3) return null;
       const day = parseInt(parts[0]);
-      const month = parseInt(parts[1]) - 1; // JavaScript months are 0-indexed
+      const month = parseInt(parts[1]) - 1;
       const year = parseInt(parts[2]);
       return new Date(year, month, day);
     }
 
-    // Helper function to format date for display
     function formatDate(dateStr) {
       if (!dateStr) return '';
-      // Input is already in DD/MM/YYYY format
       return dateStr;
     }
 
@@ -365,7 +392,6 @@
                          'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
       document.getElementById('attendanceMonth').innerHTML = `${monthNames[month]} ${year}`;
       
-      // Filter data for selected month using proper date parsing
       const filteredData = attendanceData.filter(item => {
         if (!item.date) return false;
         const dateObj = parseDateDMY(item.date);
@@ -375,7 +401,6 @@
       
       console.log(`Filtered data for ${monthNames[month]} ${year}:`, filteredData);
       
-      // Create a map of dates that have classes (by day of month)
       const classDates = new Map();
       filteredData.forEach(item => {
         const dateObj = parseDateDMY(item.date);
@@ -388,10 +413,7 @@
         }
       });
       
-      // Build calendar
       renderAttendanceCalendar(year, month, classDates);
-      
-      // Show details for the month
       renderAttendanceDetails(filteredData);
     }
 
@@ -403,35 +425,45 @@
       
       let calendarHtml = '';
       
-      // Day headers
       const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       dayHeaders.forEach(day => {
         calendarHtml += `<div class="text-center fw-bold small mb-2">${day}</div>`;
       });
       
-      // Empty cells for days before month starts
       for (let i = 0; i < startDay; i++) {
         calendarHtml += `<div class="calendar-day other-month"></div>`;
       }
       
-      // Days of the month
       for (let day = 1; day <= daysInMonth; day++) {
         const hasClass = classDates.has(day);
+        
+        // Check if any class on this day is FULL
+        let isFull = false;
+        if (hasClass) {
+          const classes = classDates.get(day);
+          isFull = classes.some(cls => parseInt(cls.present_count) === parseInt(cls.total_students) && parseInt(cls.total_students) > 0);
+        }
+        
         const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-        const dayClass = hasClass ? 'has-class' : 'no-class';
+        let dayClass = 'no-class';
+        if (hasClass) {
+          dayClass = isFull ? 'has-class' : 'has-class';
+        }
         const todayClass = isToday ? 'today' : '';
         
+        // Apply red background if FULL
+        const fullStyle = isFull ? 'style="background-color: #f8d7da; color: #dc3545;"' : '';
+        
         calendarHtml += `
-          <div class="calendar-day ${dayClass} ${todayClass}" data-day="${day}">
+          <div class="calendar-day ${dayClass} ${todayClass}" data-day="${day}" ${fullStyle}>
             ${day}
-            ${hasClass ? `<span class="attendance-badge">📊</span>` : ''}
+            ${hasClass ? `<span class="attendance-badge">${isFull ? '🔴' : '📊'}</span>` : ''}
           </div>
         `;
       }
       
       document.getElementById('attendanceCalendar').innerHTML = calendarHtml;
       
-      // Add click handlers to days with classes
       document.querySelectorAll('#attendanceCalendar .has-class').forEach(el => {
         el.addEventListener('click', () => {
           const day = parseInt(el.getAttribute('data-day'));
@@ -449,7 +481,6 @@
         return;
       }
       
-      // Group by date
       const groupedByDate = {};
       data.forEach(item => {
         const date = item.date;
@@ -459,14 +490,12 @@
         groupedByDate[date].push(item);
       });
       
-      // Sort dates using proper date parsing
       const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
         const dateA = parseDateDMY(a);
         const dateB = parseDateDMY(b);
         return dateA - dateB;
       });
       
-      // Build HTML
       let html = '<div class="attendance-summary"><h5>📋 Class Attendance Summary</h5><hr>';
       
       sortedDates.forEach(date => {
@@ -476,14 +505,22 @@
                    <div class="date">📅 ${formatDate(date)}</div>`;
         
         classes.forEach(cls => {
-          const present = cls.present_count || '0';
-          const total = cls.total_students || '0';
+          const present = parseInt(cls.present_count) || 0;
+          const total = parseInt(cls.total_students) || 0;
           const className = cls.class_name || 'Class';
           const classType = cls.class_type || '';
+          const isFull = present === total && total > 0;
+          
+          const attendanceClass = isFull ? 'attendance-count full' : 'attendance-count';
           
           html += `<div class="class-item">
-                     ${classType ? classType + ' ' : ''}${className} 
-                     (<span class="attendance-count">${present}/${total}</span>)
+                     <div class="class-info">
+                       ${classType ? classType + ' ' : ''}${className}
+                     </div>
+                     <div>
+                       <span class="${attendanceClass}">${present}/${total}</span>
+                       ${isFull ? '<span class="full-badge">🔴 FULL</span>' : ''}
+                     </div>
                    </div>`;
         });
         
@@ -505,14 +542,18 @@
       `;
       
       classes.forEach(cls => {
-        const present = cls.present_count || '0';
-        const total = cls.total_students || '0';
+        const present = parseInt(cls.present_count) || 0;
+        const total = parseInt(cls.total_students) || 0;
         const className = cls.class_name || 'Class';
         const classType = cls.class_type || '';
+        const isFull = present === total && total > 0;
+        
+        const attendanceClass = isFull ? 'attendance-count full' : 'attendance-count';
         
         html += `<div class="class-item">
                    <strong>${classType ? classType + ' ' : ''}${className}</strong><br>
-                   Attendance: <span class="attendance-count">${present}/${total}</span> students present
+                   Attendance: <span class="${attendanceClass}">${present}/${total}</span> students present
+                   ${isFull ? '<br><span class="full-badge">🔴 CLASS IS FULL</span>' : ''}
                  </div>`;
       });
       
@@ -527,16 +568,13 @@
       updateAttendanceDisplay();
     }
 
-    // Initialize attendance module
     document.getElementById('prevAttendanceMonth').addEventListener('click', () => changeAttendanceMonth(-1));
     document.getElementById('nextAttendanceMonth').addEventListener('click', () => changeAttendanceMonth(1));
     
-    // Load attendance data when tab is shown
     document.getElementById('attendance-tab').addEventListener('shown.bs.tab', () => {
       loadAttendanceData();
     });
     
-    // Initial load
     setTimeout(() => {
       loadAttendanceData();
     }, 500);
