@@ -115,9 +115,9 @@ def alternative_login():
     
     # Simple form data - only username and password
     login_data = {
-        'UserName': dale,
-        'Password': 5650,
-    }
+            'UserName': USERNAME,
+            'Password': PASSWORD,  
+        }
     
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
