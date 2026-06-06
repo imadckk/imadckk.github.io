@@ -1,6 +1,7 @@
 import json
 import os
 import time
+import re
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -15,6 +16,16 @@ from bs4 import BeautifulSoup
 USERNAME = os.environ.get('COMPANY_USERNAME')
 PASSWORD = os.environ.get('COMPANY_PASSWORD')
 BASE_URL = "http://adcdriving.dyndns.biz"
+
+# Class capacity mapping (you can adjust these values)
+# Format: "class_name_keyword": capacity
+CLASS_CAPACITY = {
+    "KPP01": 50,
+    "KPP02": 50,
+    "KPP03": 50,
+    "KPP04": 50,
+    "default": 50  # Default capacity if not found
+}
 
 def setup_driver():
     """Setup Chrome driver with automatic version management"""
@@ -69,6 +80,24 @@ def login_with_selenium(driver):
         print(f"❌ Login error: {e}")
         return False
 
+def get_class_capacity(class_name, class_type):
+    """Determine class capacity based on class name/type"""
+    # Combine class_name and class_type for matching
+    full_name = f"{class_type} {class_name}".upper()
+    
+    # Look for capacity in mapping
+    for key, capacity in CLASS_CAPACITY.items():
+        if key.upper() in full_name:
+            return capacity
+    
+    # Try to extract number from class name (e.g., "CLASS 1" might have capacity 50)
+    numbers = re.findall(r'\d+', class_name)
+    if numbers:
+        # If class name has a number, use default capacity
+        return CLASS_CAPACITY["default"]
+    
+    return CLASS_CAPACITY["default"]
+
 def get_attendance_for_date(driver, search_date):
     """Fetch attendance for a specific date"""
     try:
@@ -111,21 +140,18 @@ def get_attendance_for_date(driver, search_date):
                     continue
                 
                 cells = row.find_all('td')
-                if len(cells) >= 7:  # Need at least 7 columns for full data
+                if len(cells) >= 5:
                     student_id = cells[0].get_text(strip=True)
                     class_name = cells[1].get_text(strip=True)
                     date_str = cells[2].get_text(strip=True)
                     class_type = cells[3].get_text(strip=True)
                     present = cells[4].get_text(strip=True) if len(cells) > 4 else "0"
-                    absent = cells[5].get_text(strip=True) if len(cells) > 5 else "0"
-                    late = cells[6].get_text(strip=True) if len(cells) > 6 else "0"
                     
                     if student_id and student_id.isdigit():
-                        # Calculate total students
                         present_num = int(present) if present.isdigit() else 0
-                        absent_num = int(absent) if absent.isdigit() else 0
-                        late_num = int(late) if late.isdigit() else 0
-                        total_students = present_num + absent_num + late_num
+                        
+                        # Get class capacity
+                        total_capacity = get_class_capacity(class_name, class_type)
                         
                         records.append({
                             'date': date_str,
@@ -133,7 +159,7 @@ def get_attendance_for_date(driver, search_date):
                             'class_name': class_name,
                             'class_type': class_type,
                             'present_count': str(present_num),
-                            'total_students': str(total_students)
+                            'total_students': str(total_capacity)
                         })
         
         if records:
