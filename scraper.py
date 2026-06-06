@@ -115,8 +115,8 @@ def alternative_login():
     
     # Simple form data - only username and password
     login_data = {
-        'UserName': USERNAME,
-        'Password': PASSWORD,
+        'UserName': dale,
+        'Password': 5650,
     }
     
     headers = {
