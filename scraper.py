@@ -1,230 +1,170 @@
-import requests
-from bs4 import BeautifulSoup
 import json
 import os
-from datetime import datetime
-import calendar
-import re
+import time
+from datetime import datetime, timedelta
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from bs4 import BeautifulSoup
 
 # Get credentials from GitHub Secrets
 USERNAME = os.environ.get('COMPANY_USERNAME')
 PASSWORD = os.environ.get('COMPANY_PASSWORD')
 BASE_URL = "http://adcdriving.dyndns.biz"
 
-# Create session to maintain cookies
-session = requests.Session()
+def setup_driver():
+    """Setup Chrome driver for GitHub Actions"""
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')  # Run in background
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument('--disable-gpu')
+    options.add_argument('--window-size=1920,1080')
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0')
+    
+    # Try to find Chrome
+    chrome_paths = [
+        '/usr/bin/chromium-browser',
+        '/usr/bin/google-chrome',
+        '/usr/bin/chromium',
+    ]
+    
+    for path in chrome_paths:
+        if os.path.exists(path):
+            options.binary_location = path
+            break
+    
+    driver = webdriver.Chrome(options=options)
+    return driver
 
-def login():
-    """Login to the driving school system"""
-    print("🔐 Attempting login...")
-    
-    login_url = f"{BASE_URL}/star/User/Login"
-    
-    # Get the login page first
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-    }
+def login_with_selenium(driver):
+    """Login using Selenium - handles JavaScript properly"""
+    print("🔐 Attempting login with Selenium...")
     
     try:
-        # Get the login page to capture ViewState and other hidden fields
-        print(f"📄 Fetching login page...")
-        response = session.get(login_url, headers=headers)
-        response.raise_for_status()
+        # Navigate to login page
+        driver.get(f"{BASE_URL}/star/User/Login")
+        print(f"   Page loaded: {driver.title}")
+        time.sleep(3)
         
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Wait for username field to be present
+        wait = WebDriverWait(driver, 10)
         
-        # Extract all hidden fields (ASP.NET ViewState, etc.)
-        login_data = {}
+        # Find and fill username
+        username_field = wait.until(EC.presence_of_element_located((By.ID, "UserName")))
+        username_field.clear()
+        username_field.send_keys(USERNAME)
+        print("   ✅ Username entered")
         
-        # Find all hidden input fields
-        hidden_inputs = soup.find_all('input', type='hidden')
-        for hidden in hidden_inputs:
-            name = hidden.get('name')
-            value = hidden.get('value', '')
-            if name:
-                login_data[name] = value
-                print(f"   Found hidden field: {name}")
+        # Find and fill password
+        password_field = driver.find_element(By.ID, "Password")
+        password_field.clear()
+        password_field.send_keys(PASSWORD)
+        print("   ✅ Password entered")
         
-        # Add username and password
-        login_data['UserName'] = USERNAME
-        login_data['Password'] = PASSWORD
-        login_data['RememberMe'] = 'false'
+        # Try multiple ways to submit
+        try:
+            # Method 1: Click login button
+            login_button = driver.find_element(By.ID, "btnLogin")
+            login_button.click()
+            print("   Method 1: Clicked login button")
+        except:
+            try:
+                # Method 2: Find by CSS selector
+                login_button = driver.find_element(By.CSS_SELECTOR, "input[type='submit']")
+                login_button.click()
+                print("   Method 2: Clicked submit input")
+            except:
+                # Method 3: Press Enter
+                password_field.send_keys(Keys.RETURN)
+                print("   Method 3: Pressed Enter")
         
-        # Find the submit button name
-        submit_button = soup.find('input', type='submit')
-        if submit_button and submit_button.get('name'):
-            login_data[submit_button['name']] = submit_button.get('value', 'Login')
-        else:
-            login_data['btnLogin'] = 'Login'
-        
-        print(f"📦 Sending login with fields: {list(login_data.keys())}")
-        
-        # Updated headers for POST request
-        post_headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Origin': BASE_URL,
-            'Referer': login_url,
-            'Connection': 'keep-alive',
-        }
-        
-        # Perform login
-        print(f"🔑 Sending login POST...")
-        response = session.post(login_url, data=login_data, headers=post_headers, allow_redirects=True)
-        print(f"   Response status: {response.status_code}")
-        print(f"   Final URL: {response.url}")
+        # Wait for redirect or page change
+        time.sleep(5)
         
         # Check if login was successful
-        if response.status_code == 200:
-            # Check if we're on a page that requires authentication
-            if 'logout' in response.text.lower() or 'dashboard' in response.text.lower():
-                print("✅ Login successful! (found dashboard)")
-                return True
-            elif 'login' not in response.url.lower():
-                print("✅ Login successful! (redirected)")
-                return True
-            elif 'attendance' in response.text.lower():
-                print("✅ Login successful! (found attendance page)")
-                return True
+        current_url = driver.current_url
+        print(f"   Current URL after login: {current_url}")
         
-        # If we got a 500, maybe we need to try a different approach
-        if response.status_code == 500:
-            print("⚠️ Server returned 500 error - trying alternative login method...")
-            return alternative_login()
+        # Check for success indicators
+        page_source = driver.page_source.lower()
         
-        print("❌ Login failed")
-        return False
+        if "attendance" in current_url.lower():
+            print("✅ Login successful! (redirected to attendance)")
+            return True
+        elif "logout" in page_source:
+            print("✅ Login successful! (logout found)")
+            return True
+        elif "dashboard" in page_source:
+            print("✅ Login successful! (dashboard found)")
+            return True
+        elif "kpp" in page_source:
+            print("✅ Login successful! (KPP page found)")
+            return True
+        elif "login" not in current_url.lower():
+            print("✅ Login successful! (redirected)")
+            return True
+        else:
+            print("❌ Login failed - still on login page")
+            # Save screenshot for debugging
+            driver.save_screenshot("login_failed.png")
+            print("   Screenshot saved as login_failed.png")
+            return False
             
     except Exception as e:
         print(f"❌ Login error: {e}")
+        driver.save_screenshot("login_error.png")
         return False
 
-def alternative_login():
-    """Alternative login method using simpler approach"""
-    print("🔄 Attempting alternative login method...")
-    
-    login_url = f"{BASE_URL}/star/User/Login"
-    
-    # Simple form data - only username and password
-    login_data = {
-            'UserName': USERNAME,
-            'Password': PASSWORD,  
-        }
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Referer': login_url,
-    }
-    
-    try:
-        # Try direct POST without viewstate
-        response = session.post(login_url, data=login_data, headers=headers, allow_redirects=True)
-        print(f"   Response status: {response.status_code}")
-        print(f"   Final URL: {response.url}")
-        
-        if response.status_code == 200 or response.status_code == 302:
-            # Check if we have access to attendance page
-            test_url = f"{BASE_URL}/star/AttendanceRecord/Kpp"
-            test_response = session.get(test_url, headers=headers)
-            
-            if test_response.status_code == 200 and 'Kpp' in test_response.text:
-                print("✅ Alternative login successful!")
-                return True
-        
-        print("❌ Alternative login failed")
-        return False
-        
-    except Exception as e:
-        print(f"❌ Alternative login error: {e}")
-        return False
-
-def check_login_status():
-    """Check if we're actually logged in by accessing a protected page"""
-    test_url = f"{BASE_URL}/star/AttendanceRecord/Kpp"
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    }
-    
-    try:
-        response = session.get(test_url, headers=headers)
-        
-        if response.status_code == 200:
-            # Check if we got the attendance page (not redirected to login)
-            if 'login' not in response.url.lower():
-                print("✅ Session is authenticated")
-                return True
-            else:
-                print("❌ Session not authenticated - redirected to login")
-                return False
-        else:
-            print(f"❌ Session check failed with status: {response.status_code}")
-            return False
-    except Exception as e:
-        print(f"❌ Session check error: {e}")
-        return False
-
-def get_attendance_for_date(search_date):
+def get_attendance_for_date(driver, search_date):
     """Fetch attendance data for a specific date"""
-    attendance_url = f"{BASE_URL}/star/AttendanceRecord/Kpp"
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Referer': attendance_url,
-    }
-    
     try:
         formatted_date = search_date.strftime("%m/%d/%Y")
         print(f"  🔍 Checking {formatted_date}...", end=" ", flush=True)
         
-        # First, get the page to get any necessary tokens
-        response = session.get(attendance_url, headers=headers)
+        # Navigate to attendance page
+        driver.get(f"{BASE_URL}/star/AttendanceRecord/Kpp")
+        time.sleep(2)
         
-        if response.status_code != 200:
-            print(f"⚠️ Failed to load page")
-            return []
+        # Wait for page to load
+        wait = WebDriverWait(driver, 10)
         
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Find date field and set value
+        try:
+            date_field = wait.until(EC.presence_of_element_located((By.ID, "lessonDate")))
+            date_field.clear()
+            # Use JavaScript to set date (more reliable)
+            driver.execute_script(f"arguments[0].value = '{formatted_date}';", date_field)
+            print("date set", end=" ")
+        except Exception as e:
+            print(f"date field error", end=" ")
         
-        # Find the search form data
-        search_data = {}
+        # Find and click search button
+        try:
+            search_button = driver.find_element(By.ID, "mySearchButton")
+            driver.execute_script("arguments[0].click();", search_button)
+            print("search clicked", end=" ")
+        except:
+            try:
+                search_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+                driver.execute_script("arguments[0].click();", search_button)
+                print("search clicked", end=" ")
+            except:
+                print("no search button", end=" ")
         
-        # Add any hidden fields
-        hidden_inputs = soup.find_all('input', type='hidden')
-        for hidden in hidden_inputs:
-            name = hidden.get('name')
-            value = hidden.get('value', '')
-            if name:
-                search_data[name] = value
+        # Wait for results to load
+        time.sleep(3)
         
-        # Add the date
-        search_data['lessonDate'] = formatted_date
-        
-        # Add the search button
-        search_data['mySearchButton'] = 'Search'
-        
-        # Submit the search
-        response = session.post(attendance_url, data=search_data, headers=headers)
-        
-        if response.status_code != 200:
-            print(f"⚠️ Search failed")
-            return []
-        
-        # Parse the response for attendance data
-        soup = BeautifulSoup(response.text, 'html.parser')
+        # Parse the page source
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
         
         records = []
         
-        # Find all tables
+        # Find all tables with attendance data
         tables = soup.find_all('table')
         
         for table in tables:
@@ -244,7 +184,8 @@ def get_attendance_for_date(search_date):
                     absent = cells[5].get_text(strip=True) if len(cells) > 5 else "0"
                     late = cells[6].get_text(strip=True) if len(cells) > 6 else "0"
                     
-                    if student_id and student_id.isdigit():
+                    # Only add if it looks like a valid record
+                    if student_id and student_id.isdigit() and len(student_id) > 3:
                         records.append({
                             'date': date,
                             'class_id': student_id,
@@ -266,33 +207,35 @@ def get_attendance_for_date(search_date):
         print(f"❌ Error: {e}")
         return []
 
-def get_month_attendance(year, month):
+def get_month_attendance(driver, year, month):
     """Fetch attendance for entire month"""
-    print(f"\n📅 Fetching attendance for {calendar.month_name[month]} {year}")
+    print(f"\n📅 Fetching attendance for {datetime(year, month, 1).strftime('%B')} {year}")
     print("=" * 50)
     
-    # For testing, let's just check a few days first
-    # Change this to range(1, num_days + 1) for full month
-    num_days = calendar.monthrange(year, month)[1]
+    # Get days in month
+    if month == 12:
+        next_month = datetime(year + 1, 1, 1)
+    else:
+        next_month = datetime(year, month + 1, 1)
+    num_days = (next_month - datetime(year, month, 1)).days
+    
     all_records = []
     
-    # Limit to current and next few days for testing
-    current_day = datetime.now().day
-    days_to_check = range(max(1, current_day - 2), min(num_days + 1, current_day + 3))
+    # For GitHub Actions, check all days but be efficient
+    print(f"Checking all {num_days} days...")
     
-    print(f"⚠️ Testing mode: Checking days {list(days_to_check)} only")
-    
-    for day in days_to_check:
+    for day in range(1, num_days + 1):
         current_date = datetime(year, month, day)
-        records = get_attendance_for_date(current_date)
+        records = get_attendance_for_date(driver, current_date)
         all_records.extend(records)
+        time.sleep(1)  # Be nice to the server
     
     return all_records
 
-def get_current_month_attendance():
+def get_current_month_attendance(driver):
     """Fetch attendance for current month"""
     now = datetime.now()
-    return get_month_attendance(now.year, now.month)
+    return get_month_attendance(driver, now.year, now.month)
 
 def save_data(attendance_records):
     """Save to JSON file"""
@@ -314,7 +257,8 @@ def save_data(attendance_records):
         simplified_data.append(simplified_record)
     
     if simplified_data:
-        simplified_data.sort(key=lambda x: datetime.strptime(x['date'], '%m/%d/%Y'))
+        # Sort by date
+        simplified_data.sort(key=lambda x: datetime.strptime(x['date'], '%m/%d/%Y') if x['date'] else datetime.min)
     
     output = {
         'last_updated': datetime.now().isoformat(),
@@ -337,28 +281,32 @@ def save_data(attendance_records):
             print(f"   {record['class_type']} {record['class_name']} ({record['present_count']}/{record['total_students']})")
 
 def main():
-    print("🚀 Driving School Attendance Scraper")
+    print("🚀 Driving School Attendance Scraper (Selenium Version)")
     print("=" * 50)
     print(f"Username configured: {'Yes' if USERNAME else 'No'}")
     print(f"Password configured: {'Yes' if PASSWORD else 'No'}")
-    print(f"Base URL: {BASE_URL}")
     print()
     
     if not USERNAME or not PASSWORD:
         print("❌ Missing credentials!")
+        print("Please set COMPANY_USERNAME and COMPANY_PASSWORD in GitHub Secrets")
         exit(1)
     
-    if login():
-        # Verify session is working
-        if check_login_status():
+    driver = None
+    try:
+        print("📱 Setting up browser...")
+        driver = setup_driver()
+        print("✅ Browser ready")
+        
+        if login_with_selenium(driver):
             print("\n✅ Ready to fetch attendance data")
-            attendance_data = get_current_month_attendance()
+            attendance_data = get_current_month_attendance(driver)
             
             if attendance_data:
                 save_data(attendance_data)
+                print(f"\n✅ Successfully processed {len(attendance_data)} class records")
             else:
-                print("\n⚠️ No attendance records found")
-                # Create empty JSON
+                print("\n⚠️ No attendance records found for this month")
                 output = {
                     'last_updated': datetime.now().isoformat(),
                     'attendance_summary': []
@@ -366,11 +314,18 @@ def main():
                 with open('attendance.json', 'w') as f:
                     json.dump(output, f, indent=2)
         else:
-            print("❌ Session verification failed")
+            print("❌ Login failed - cannot proceed")
             exit(1)
-    else:
-        print("❌ Login failed")
+            
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
         exit(1)
+    finally:
+        if driver:
+            driver.quit()
+            print("🔚 Browser closed")
 
 if __name__ == "__main__":
     main()
