@@ -322,12 +322,34 @@
     let currentAttendanceDate = new Date();
     let attendanceData = [];
 
+    // Helper function to parse date in DD/MM/YYYY format
+    function parseDateDMY(dateStr) {
+      if (!dateStr) return null;
+      const parts = dateStr.split('/');
+      if (parts.length !== 3) return null;
+      const day = parseInt(parts[0]);
+      const month = parseInt(parts[1]) - 1; // JavaScript months are 0-indexed
+      const year = parseInt(parts[2]);
+      return new Date(year, month, day);
+    }
+
+    // Helper function to format date for display
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      // Input is already in DD/MM/YYYY format
+      return dateStr;
+    }
+
     async function loadAttendanceData() {
+      const detailsDiv = document.getElementById('attendanceDetails');
+      detailsDiv.innerHTML = '<div class="loading">📊 Loading attendance data...</div>';
+      
       try {
         const response = await fetch('attendance.json?' + Date.now());
         if (!response.ok) throw new Error('Failed to load attendance data');
         const data = await response.json();
         attendanceData = data.attendance_summary || [];
+        console.log('Loaded attendance data:', attendanceData);
         updateAttendanceDisplay();
       } catch (error) {
         console.error('Error loading attendance:', error);
@@ -343,24 +365,27 @@
                          'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
       document.getElementById('attendanceMonth').innerHTML = `${monthNames[month]} ${year}`;
       
-      // Filter data for selected month
+      // Filter data for selected month using proper date parsing
       const filteredData = attendanceData.filter(item => {
         if (!item.date) return false;
-        const parts = item.date.split('/');
-        if (parts.length !== 3) return false;
-        const itemMonth = parseInt(parts[0]) - 1;
-        const itemYear = parseInt(parts[2]);
-        return itemYear === year && itemMonth === month;
+        const dateObj = parseDateDMY(item.date);
+        if (!dateObj) return false;
+        return dateObj.getMonth() === month && dateObj.getFullYear() === year;
       });
       
-      // Create a map of dates that have classes
+      console.log(`Filtered data for ${monthNames[month]} ${year}:`, filteredData);
+      
+      // Create a map of dates that have classes (by day of month)
       const classDates = new Map();
       filteredData.forEach(item => {
-        const day = parseInt(item.date.split('/')[1]);
-        if (!classDates.has(day)) {
-          classDates.set(day, []);
+        const dateObj = parseDateDMY(item.date);
+        if (dateObj) {
+          const day = dateObj.getDate();
+          if (!classDates.has(day)) {
+            classDates.set(day, []);
+          }
+          classDates.get(day).push(item);
         }
-        classDates.get(day).push(item);
       });
       
       // Build calendar
@@ -409,10 +434,11 @@
       // Add click handlers to days with classes
       document.querySelectorAll('#attendanceCalendar .has-class').forEach(el => {
         el.addEventListener('click', () => {
-          const day = el.getAttribute('data-day');
-          const dateStr = `${String(month+1).padStart(2,'0')}/${String(day).padStart(2,'0')}/${year}`;
-          const classesForDay = classDates.get(parseInt(day));
-          showDayDetails(dateStr, classesForDay);
+          const day = parseInt(el.getAttribute('data-day'));
+          const classesForDay = classDates.get(day);
+          if (classesForDay) {
+            showDayDetails(classesForDay);
+          }
         });
       });
     }
@@ -433,10 +459,10 @@
         groupedByDate[date].push(item);
       });
       
-      // Sort dates
+      // Sort dates using proper date parsing
       const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
-        const dateA = new Date(a);
-        const dateB = new Date(b);
+        const dateA = parseDateDMY(a);
+        const dateB = parseDateDMY(b);
         return dateA - dateB;
       });
       
@@ -468,10 +494,13 @@
       document.getElementById('attendanceDetails').innerHTML = html;
     }
 
-    function showDayDetails(dateStr, classes) {
+    function showDayDetails(classes) {
+      if (!classes || classes.length === 0) return;
+      
+      const date = classes[0].date;
       let html = `
         <div class="attendance-summary">
-          <h5>📅 Detailed Attendance for ${formatDate(dateStr)}</h5>
+          <h5>📅 Detailed Attendance for ${formatDate(date)}</h5>
           <hr>
       `;
       
@@ -487,19 +516,10 @@
                  </div>`;
       });
       
-      html += `<button class="btn btn-sm btn-outline-secondary mt-3" onclick="document.getElementById('attendanceDetails').scrollIntoView({behavior:'smooth'});">← Back to summary</button>`;
+      html += `<button class="btn btn-sm btn-outline-secondary mt-3" onclick="location.reload();">← Back to summary</button>`;
       html += `</div>`;
       
       document.getElementById('attendanceDetails').innerHTML = html;
-    }
-
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      const parts = dateStr.split('/');
-      if (parts.length === 3) {
-        return `${parts[0]}/${parts[1]}/${parts[2]}`;
-      }
-      return dateStr;
     }
 
     function changeAttendanceMonth(delta) {
@@ -516,12 +536,10 @@
       loadAttendanceData();
     });
     
-    // Initial load (in case attendance tab is default)
+    // Initial load
     setTimeout(() => {
-      if (document.getElementById('attendance').classList.contains('active')) {
-        loadAttendanceData();
-      }
-    }, 100);
+      loadAttendanceData();
+    }, 500);
   </script>
 </body>
 </html>
