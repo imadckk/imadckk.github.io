@@ -2,12 +2,11 @@ name: Scrape Driving School Attendance
 
 on:
   schedule:
-    - cron: "0 8,13,18 * * *"
+    - cron: "0 8,9,10,11,12,13,14,15,16 * * *"
   workflow_dispatch:
   push:
     branches: [ main, master ]
 
-# Add permissions here
 permissions:
   contents: write
 
@@ -18,23 +17,22 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       
-      - name: Install Chrome and ChromeDriver
+      - name: Install Chrome
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser chromium-chromedriver
+          sudo apt-get install -y chromium-browser
       
       - name: Install Python dependencies
         run: |
           pip install selenium
           pip install beautifulsoup4
+          pip install webdriver-manager
       
       - name: Run attendance scraper
         env:
