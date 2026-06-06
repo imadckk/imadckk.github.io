@@ -2,9 +2,8 @@ name: Scrape Driving School Attendance
 
 on:
   schedule:
-    # Runs at 8 AM, 1 PM, and 6 PM daily
     - cron: "0 8,13,18 * * *"
-  workflow_dispatch:  # Allows manual trigger
+  workflow_dispatch:
   push:
     branches: [ main, master ]
     paths:
@@ -35,7 +34,17 @@ jobs:
           COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
         run: python scraper.py
       
+      - name: Upload debug files (if login fails)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-files
+          path: |
+            debug_*.html
+            attendance.json
+      
       - name: Commit and push changes
+        if: success()
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
