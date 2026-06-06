@@ -1,4 +1,4 @@
-name: Scrape data
+name: Scrape Driving School Attendance
 
 on:
   schedule:
@@ -6,8 +6,6 @@ on:
   workflow_dispatch:
   push:
     branches: [ main, master ]
-    paths:
-      - 'scraper.py'
 
 jobs:
   scrape:
@@ -22,26 +20,24 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install dependencies
+      - name: Install Chrome and ChromeDriver
         run: |
-          pip install requests
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+          echo "CHROME_PATH=/usr/bin/chromium-browser" >> $GITHUB_ENV
+          echo "CHROMEDRIVER_PATH=/usr/bin/chromedriver" >> $GITHUB_ENV
+      
+      - name: Install Python dependencies
+        run: |
+          pip install selenium
           pip install beautifulsoup4
-          pip install lxml
+          pip install webdriver-manager
       
       - name: Run attendance scraper
         env:
           COMPANY_USERNAME: ${{ secrets.COMPANY_USERNAME }}
           COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
         run: python scraper.py
-      
-      - name: Upload debug files (if login fails)
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug-files
-          path: |
-            debug_*.html
-            attendance.json
       
       - name: Commit and push changes
         if: success()
