@@ -119,10 +119,10 @@ function selectLocation(locationId) {
   });
 
   // Update calendar title
-  const currentLocation = locations.find((loc) => loc.id === locationId);
-  if (currentLocation) {
-    document.querySelector('h1').textContent = `${currentLocation.name} Calendar`;
-  }
+  // const currentLocation = locations.find((loc) => loc.id === locationId);
+  // if (currentLocation) {
+  //   document.querySelector('h1').textContent = `${currentLocation.name} Calendar`;
+  // }
 
   renderCalendar();
 }
