@@ -1,0 +1,44 @@
+name: Scrape Driving School Attendance
+
+on:
+  schedule:
+    # Runs at 8 AM, 1 PM, and 6 PM daily
+    - cron: "0 8,13,18 * * *"
+  workflow_dispatch:  # Allows manual trigger
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'scraper.py'
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install requests
+          pip install beautifulsoup4
+          pip install lxml
+      
+      - name: Run attendance scraper
+        env:
+          COMPANY_USERNAME: ${{ secrets.COMPANY_USERNAME }}
+          COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
+        run: python scraper.py
+      
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add attendance.json
+          git diff --staged --quiet || git commit -m "Auto-update attendance data [skip ci]"
+          git push
