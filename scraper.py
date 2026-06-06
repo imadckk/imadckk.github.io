@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 
 # Get credentials from GitHub Secrets
@@ -15,7 +17,7 @@ PASSWORD = os.environ.get('COMPANY_PASSWORD')
 BASE_URL = "http://adcdriving.dyndns.biz"
 
 def setup_driver():
-    """Setup Chrome driver for GitHub Actions"""
+    """Setup Chrome driver with automatic version management"""
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
@@ -24,7 +26,9 @@ def setup_driver():
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
     
-    driver = webdriver.Chrome(options=options)
+    # Use webdriver-manager to automatically get the right ChromeDriver
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
     return driver
 
 def login_with_selenium(driver):
@@ -74,24 +78,20 @@ def login_with_selenium(driver):
 def get_attendance_for_date(driver, search_date):
     """Fetch attendance for a specific date"""
     try:
-        # Use DD/MM/YYYY format for input (matching the system)
         formatted_date_input = search_date.strftime("%d/%m/%Y")
         print(f"  🔍 Checking {formatted_date_input}...", end=" ", flush=True)
         
-        # Navigate to attendance page
         driver.get(f"{BASE_URL}/star/AttendanceRecord/Kpp")
         time.sleep(2)
         
-        # Find and set date field
         try:
             date_field = driver.find_element(By.ID, "lessonDate")
             date_field.clear()
             date_field.send_keys(formatted_date_input)
         except:
-            print("date field error", end=" ")
+            print("date error", end=" ")
             return []
         
-        # Find and click search button
         try:
             search_button = driver.find_element(By.ID, "mySearchButton")
             search_button.click()
@@ -103,21 +103,16 @@ def get_attendance_for_date(driver, search_date):
                 print("no button", end=" ")
                 return []
         
-        # Wait for results
         time.sleep(3)
         
-        # Parse the page
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         
         records = []
-        
-        # Find all tables
         tables = soup.find_all('table')
         
         for table in tables:
             rows = table.find_all('tr')
             for row in rows:
-                # Skip header rows
                 if row.find('th'):
                     continue
                 
@@ -128,21 +123,15 @@ def get_attendance_for_date(driver, search_date):
                     date_str = cells[2].get_text(strip=True)
                     class_type = cells[3].get_text(strip=True)
                     present = cells[4].get_text(strip=True) if len(cells) > 4 else "0"
-                    absent = cells[5].get_text(strip=True) if len(cells) > 5 else "0"
-                    late = cells[6].get_text(strip=True) if len(cells) > 6 else "0"
                     
                     if student_id and student_id.isdigit():
-                        # Calculate total students
-                        total = int(present) + int(absent) + int(late) if present.isdigit() and absent.isdigit() and late.isdigit() else 0
-                        
-                        # Store date as-is (already in DD/MM/YYYY format from the system)
                         records.append({
                             'date': date_str,
                             'class_id': student_id,
                             'class_name': class_name,
                             'class_type': class_type,
                             'present_count': present,
-                            'total_students': str(total) if total > 0 else "0"
+                            'total_students': "0"
                         })
         
         if records:
@@ -162,7 +151,6 @@ def get_month_attendance(driver):
     print(f"\n📅 Fetching attendance for {now.strftime('%B %Y')}")
     print("=" * 50)
     
-    # Get days in current month
     if now.month == 12:
         next_month = datetime(now.year + 1, 1, 1)
     else:
@@ -171,18 +159,13 @@ def get_month_attendance(driver):
     
     all_records = []
     
-    # Check all days in the month
     for day in range(1, num_days + 1):
         current_date = datetime(now.year, now.month, day)
         records = get_attendance_for_date(driver, current_date)
         all_records.extend(records)
-        time.sleep(1)  # Be nice to the server
+        time.sleep(1)
     
     return all_records
-
-def get_current_month_attendance(driver):
-    """Fetch attendance for current month"""
-    return get_month_attendance(driver)
 
 def save_data(attendance_records):
     """Save to JSON file"""
@@ -198,14 +181,11 @@ def save_data(attendance_records):
         }
         simplified_data.append(simplified_record)
     
-    # Sort by date (parse DD/MM/YYYY format)
     def parse_date(date_str):
         try:
-            # Try DD/MM/YYYY format
             return datetime.strptime(date_str, '%d/%m/%Y')
         except:
             try:
-                # Try MM/DD/YYYY format as fallback
                 return datetime.strptime(date_str, '%m/%d/%Y')
             except:
                 return datetime.min
@@ -242,7 +222,6 @@ def main():
     
     if not USERNAME or not PASSWORD:
         print("❌ Missing credentials!")
-        print("Please set COMPANY_USERNAME and COMPANY_PASSWORD in GitHub Secrets")
         exit(1)
     
     driver = None
@@ -253,13 +232,13 @@ def main():
         
         if login_with_selenium(driver):
             print("\n✅ Ready to fetch attendance data")
-            attendance_data = get_current_month_attendance(driver)
+            attendance_data = get_month_attendance(driver)
             
             if attendance_data:
                 save_data(attendance_data)
                 print(f"\n✅ Successfully processed {len(attendance_data)} class records")
             else:
-                print("\n⚠️ No attendance records found for this month")
+                print("\n⚠️ No attendance records found")
                 output = {
                     'last_updated': datetime.now().isoformat(),
                     'attendance_summary': []
@@ -267,7 +246,7 @@ def main():
                 with open('attendance.json', 'w') as f:
                     json.dump(output, f, indent=2)
         else:
-            print("❌ Login failed - cannot proceed")
+            print("❌ Login failed")
             exit(1)
             
     except Exception as e:
