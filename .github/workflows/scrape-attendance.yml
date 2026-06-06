@@ -2,7 +2,10 @@ name: Scrape Driving School Attendance
 
 on:
   schedule:
-    - cron: "0 8,9,10,11,12,13,14,15,16 * * *"
+    # Runs every hour from 8 AM to 4 PM MALAYSIA TIME (UTC+8)
+    # Malaysia 8 AM = UTC 0 AM
+    # Malaysia 4 PM = UTC 8 AM
+    - cron: "0 0,1,2,3,4,5,6,7,8 * * *"
   workflow_dispatch:
   push:
     branches: [ main, master ]
@@ -23,10 +26,10 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install Chrome
+      - name: Install Chrome and ChromeDriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser
+          sudo apt-get install -y chromium-browser chromium-chromedriver
       
       - name: Install Python dependencies
         run: |
