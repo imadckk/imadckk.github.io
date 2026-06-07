@@ -119,6 +119,25 @@
       opacity: 0.6;
     }
 
+    /* Past date styles - greyed out */
+    .past-date {
+      background-color: #e9ecef !important;
+      color: #adb5bd !important;
+      opacity: 0.6;
+      cursor: not-allowed !important;
+      text-decoration: line-through;
+    }
+    
+    .past-date.has-class {
+      background-color: #e9ecef !important;
+      color: #adb5bd !important;
+    }
+    
+    .past-date:hover {
+      transform: none !important;
+      cursor: not-allowed !important;
+    }
+
     .attendance-badge {
       position: absolute;
       bottom: 2px;
@@ -138,10 +157,8 @@
     /* Attendance Summary Card */
     .attendance-summary {
       background: white;
-      /* border-radius: 12px; */
       padding: 10px;
       margin-bottom: 10px;
-      /* box-shadow: 0 2px 8px rgba(0,0,0,0.1); */
     }
 
     .date-group {
@@ -221,6 +238,17 @@
       margin-bottom: 20px;
     }
 
+    /* Info Box */
+    .info-box {
+      background-color: #e7f3ff;
+      border-left: 4px solid #0d6efd;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      font-size: 0.85em;
+      color: #004085;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .calendar-day {
@@ -250,7 +278,6 @@
 
 <body>
   <div class="container mt-4">
-    <!-- <h1 class="text-center mb-4">📍 Location & Attendance Dashboard</h1> -->
 
     <!-- Tabs Navigation -->
     <ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
@@ -318,6 +345,14 @@
           </div>
           <div class="card-body">
             
+            <!-- Info Box -->
+            <div class="info-box">
+              📌 <strong>Note:</strong> 
+              <p>1st come 1st serve</p>
+              <p>Tempahan hanya SAH selepas pendaftaran dan bayaran dibuat</p>
+              <p>NO Walk-in</p>
+            </div>
+            
             <div id="attendanceCalendar"></div>
             <div id="attendanceDetails" style="margin-top: 30px;"></div>
           </div>
@@ -326,7 +361,7 @@
         <div class="legend d-flex justify-content-center align-items-center gap-4 mt-4">
           <div class="d-flex align-items-center">
             <div class="legend-box has-class"></div>
-            <small>Has Class</small>
+            <small>Future Class</small>
           </div>
           <div class="d-flex align-items-center">
             <div class="legend-box no-class"></div>
@@ -335,6 +370,10 @@
           <div class="d-flex align-items-center">
             <div class="legend-box" style="background-color: #dc3545;"></div>
             <small>Full Class</small>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="legend-box" style="background-color: #e9ecef;"></div>
+            <small>Past Date</small>
           </div>
         </div>
       </div>
@@ -365,6 +404,15 @@
       return dateStr;
     }
 
+    // Check if a date is past (including today)
+    function isPastDate(year, month, day) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const checkDate = new Date(year, month, day);
+      checkDate.setHours(0, 0, 0, 0);
+      return checkDate <= today;
+    }
+
     async function loadAttendanceData() {
       const detailsDiv = document.getElementById('attendanceDetails');
       detailsDiv.innerHTML = '<div class="loading">📊 Loading attendance data...</div>';
@@ -390,14 +438,21 @@
                          'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
       document.getElementById('attendanceMonth').innerHTML = `${monthNames[month]} ${year}`;
       
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Filter data for selected month AND only future dates (not including today)
       const filteredData = attendanceData.filter(item => {
         if (!item.date) return false;
         const dateObj = parseDateDMY(item.date);
         if (!dateObj) return false;
-        return dateObj.getMonth() === month && dateObj.getFullYear() === year;
+        // Only include future dates (after today)
+        return dateObj.getMonth() === month && 
+               dateObj.getFullYear() === year && 
+               dateObj > today;
       });
       
-      console.log(`Filtered data for ${monthNames[month]} ${year}:`, filteredData);
+      console.log(`Future dates for ${monthNames[month]} ${year}:`, filteredData);
       
       const classDates = new Map();
       filteredData.forEach(item => {
@@ -420,6 +475,7 @@
       const startDay = firstDay.getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
       
       let calendarHtml = '';
       
@@ -434,48 +490,57 @@
       
       for (let day = 1; day <= daysInMonth; day++) {
         const hasClass = classDates.has(day);
+        const isPast = isPastDate(year, month, day);
+        const isTodayDate = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
         
         // Check if any class on this day is FULL
         let isFull = false;
-        if (hasClass) {
+        if (hasClass && !isPast) {
           const classes = classDates.get(day);
           isFull = classes.some(cls => parseInt(cls.present_count) === parseInt(cls.total_students) && parseInt(cls.total_students) > 0);
         }
         
-        const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
-        let dayClass = 'no-class';
-        if (hasClass) {
-          dayClass = isFull ? 'has-class' : 'has-class';
-        }
-        const todayClass = isToday ? 'today' : '';
+        const isTodayClass = isTodayDate ? 'today' : '';
         
-        // Apply red background if FULL
-        const fullStyle = isFull ? 'style="background-color: #f8d7da; color: #dc3545;"' : '';
+        // Determine styling
+        let dayClass = 'no-class';
+        let additionalStyle = '';
+        
+        if (isPast) {
+          dayClass = 'past-date';
+          additionalStyle = '';
+        } else if (hasClass) {
+          dayClass = isFull ? 'has-class' : 'has-class';
+          additionalStyle = isFull ? 'style="background-color: #f8d7da; color: #dc3545;"' : '';
+        }
         
         calendarHtml += `
-          <div class="calendar-day ${dayClass} ${todayClass}" data-day="${day}" ${fullStyle}>
+          <div class="calendar-day ${dayClass} ${isTodayClass}" data-day="${day}" ${additionalStyle}>
             ${day}
-            ${hasClass ? `<span class="attendance-badge">${isFull ? '🔴' : '📊'}</span>` : ''}
+            ${hasClass && !isPast ? `<span class="attendance-badge">${isFull ? '🔴' : '📊'}</span>` : ''}
           </div>
         `;
       }
       
       document.getElementById('attendanceCalendar').innerHTML = calendarHtml;
       
+      // Only add click handlers to future dates with classes
       document.querySelectorAll('#attendanceCalendar .has-class').forEach(el => {
-        el.addEventListener('click', () => {
-          const day = parseInt(el.getAttribute('data-day'));
-          const classesForDay = classDates.get(day);
-          if (classesForDay) {
-            showDayDetails(classesForDay);
-          }
-        });
+        const day = parseInt(el.getAttribute('data-day'));
+        if (!isPastDate(year, month, day)) {
+          el.addEventListener('click', () => {
+            const classesForDay = classDates.get(day);
+            if (classesForDay) {
+              showDayDetails(classesForDay);
+            }
+          });
+        }
       });
     }
 
     function renderAttendanceDetails(data) {
       if (!data || data.length === 0) {
-        document.getElementById('attendanceDetails').innerHTML = '<div class="no-data">📅 No classes this month</div>';
+        document.getElementById('attendanceDetails').innerHTML = '<div class="no-data">📅 No upcoming classes this month</div>';
         return;
       }
       
@@ -494,7 +559,7 @@
         return dateA - dateB;
       });
       
-      let html = '<div class="attendance-summary"><h5>📋 Class Attendance Summary</h5><hr>';
+      let html = '<div class="attendance-summary"><h5>📋 Upcoming Classes</h5><hr>';
       
       sortedDates.forEach(date => {
         const classes = groupedByDate[date];
@@ -535,7 +600,7 @@
       const date = classes[0].date;
       let html = `
         <div class="attendance-summary">
-          <h5>📅 Detailed Attendance for ${formatDate(date)}</h5>
+          <h5>📅 Class Details for ${formatDate(date)}</h5>
           <hr>
       `;
       
@@ -550,12 +615,12 @@
         
         html += `<div class="class-item">
                    <strong>${classType ? classType + ' ' : ''}${className}</strong><br>
-                   Attendance: <span class="${attendanceClass}">${present}/${total}</span> students booked
-                   ${isFull ? '<br><span class="full-badge">🔴 CLASS FULL!</span>' : ''}
+                   Booked: <span class="${attendanceClass}">${present}/${total}</span> students
+                   ${isFull ? '<br><span class="full-badge">🔴 CLASS IS FULL!</span>' : ''}
                  </div>`;
       });
       
-      html += `<button class="btn btn-sm btn-outline-secondary mt-3" onclick="location.reload();">← Back to summary</button>`;
+      html += `<button class="btn btn-sm btn-outline-secondary mt-3" onclick="updateAttendanceDisplay();">← Back to calendar</button>`;
       html += `</div>`;
       
       document.getElementById('attendanceDetails').innerHTML = html;
