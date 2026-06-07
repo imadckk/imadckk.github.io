@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>ADC Availability Calendar</title>
 
   <!-- Bootstrap -->
@@ -17,28 +17,129 @@
       font-weight: 600;
     }
 
-    /* Tab Styles */
-    .nav-tabs .nav-link {
+    /* ============================================ */
+    /* HORIZONTAL SCROLLABLE TABS - Mobile Friendly */
+    /* ============================================ */
+    .tabs-wrapper {
+      position: relative;
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scroll-behavior: smooth;
+      white-space: nowrap;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    .tabs-wrapper::-webkit-scrollbar {
+      height: 3px;
+    }
+    
+    .tabs-wrapper::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .tabs-wrapper::-webkit-scrollbar-thumb {
+      background: #0d6efd;
+      border-radius: 10px;
+    }
+    
+    .nav-tabs-scrollable {
+      display: inline-flex;
+      flex-wrap: nowrap;
+      border: none;
+      margin: 0;
+      padding: 0;
+      background: white;
+      border-radius: 12px;
+    }
+    
+    .nav-tabs-scrollable .nav-item {
+      display: inline-flex;
+      float: none;
+      margin: 0;
+    }
+    
+    .nav-tabs-scrollable .nav-link {
+      white-space: nowrap;
       font-weight: 500;
       color: #6c757d;
       border: none;
-      padding: 12px 24px;
+      padding: 12px 20px;
       transition: all 0.2s ease;
-    }
-
-    .nav-tabs .nav-link:hover {
-      color: #0d6efd;
-      border-bottom: 2px solid #0d6efd;
+      border-radius: 0;
       background: transparent;
+      position: relative;
     }
-
-    .nav-tabs .nav-link.active {
+    
+    .nav-tabs-scrollable .nav-link:hover {
+      color: #0d6efd;
+      background: #f8f9fa;
+    }
+    
+    .nav-tabs-scrollable .nav-link.active {
       color: #0d6efd;
       font-weight: 600;
-      border-bottom: 2px solid #0d6efd;
       background: transparent;
     }
+    
+    .nav-tabs-scrollable .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background-color: #0d6efd;
+      border-radius: 2px;
+    }
+    
+    /* Scroll buttons for desktop (optional) */
+    .scroll-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 40px;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    
+    .scroll-btn:hover {
+      background: #f8f9fa;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+    
+    .scroll-left {
+      left: 5px;
+    }
+    
+    .scroll-right {
+      right: 5px;
+    }
+    
+    @media (max-width: 768px) {
+      .scroll-btn {
+        display: none;
+      }
+      .nav-tabs-scrollable .nav-link {
+        padding: 10px 16px;
+        font-size: 14px;
+      }
+    }
 
+    /* Rest of your existing styles */
     .tab-content {
       margin-top: 20px;
     }
@@ -119,7 +220,6 @@
       opacity: 0.6;
     }
 
-    /* Past date styles - greyed out */
     .past-date {
       background-color: #e9ecef !important;
       color: #adb5bd !important;
@@ -238,7 +338,6 @@
       margin-bottom: 20px;
     }
 
-    /* Info Box */
     .info-box {
       background-color: #e7f3ff;
       border-left: 4px solid #0d6efd;
@@ -259,10 +358,6 @@
         width: 24px;
         height: 14px;
       }
-      .nav-tabs .nav-link {
-        padding: 8px 16px;
-        font-size: 14px;
-      }
       .class-item {
         flex-direction: column;
         align-items: flex-start;
@@ -279,29 +374,44 @@
 <body>
   <div class="container mt-4">
 
-    <!-- Tabs Navigation -->
-    <ul class="nav nav-tabs justify-content-center" id="myTab" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab" aria-controls="location" aria-selected="true">
-          🖥️ Computer Test Availability
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="false">
-          🧑‍🏫 Jadual KPP01 gabungan
-        </button>
-      </li>
-    </ul>
+    <!-- Horizontal Scrollable Tabs -->
+    <div class="tabs-wrapper">
+      <div class="nav-tabs-scrollable" id="myTab" role="tablist">
+        <div class="nav-item" role="presentation">
+          <button class="nav-link active" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab" aria-controls="location" aria-selected="true">
+            🖥️ Computer Test
+          </button>
+        </div>
+        <div class="nav-item" role="presentation">
+          <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="false">
+            🧑‍🏫 KPP01 Gabungan
+          </button>
+        </div>
+        <!-- Add more tabs here in the future -->
+        <!--
+        <div class="nav-item" role="presentation">
+          <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab">
+            📋 New Tab 3
+          </button>
+        </div>
+        <div class="nav-item" role="presentation">
+          <button class="nav-link" id="tab4-tab" data-bs-toggle="tab" data-bs-target="#tab4" type="button" role="tab">
+            📋 New Tab 4
+          </button>
+        </div>
+        -->
+      </div>
+    </div>
 
     <!-- Tab Content -->
     <div class="tab-content" id="myTabContent">
       
-      <!-- Tab 1: Location Availability (Original) -->
+      <!-- Tab 1: Location Availability -->
       <div class="tab-pane fade show active" id="location" role="tabpanel" aria-labelledby="location-tab">
         <div class="d-flex justify-content-center mb-4">
           <div class="btn-group shadow-sm" role="group">
             <button type="button" class="btn location-toggle btn-red" data-location="location-a">
-              
+              ADC Sg Petani
             </button>
           </div>
         </div>
@@ -311,8 +421,8 @@
             <div class="d-flex justify-content-between align-items-center">
               <h5 id="currentMonth" class="fw-semibold mb-0"></h5>
               <div>
-                <button class="btn btn-sm btn-outline-secondary" id="prevMonth" aria-label="Previous month">←</button>
-                <button class="btn btn-sm btn-outline-secondary" id="nextMonth" aria-label="Next month">→</button>
+                <button class="btn btn-sm btn-outline-secondary" id="prevMonth">←</button>
+                <button class="btn btn-sm btn-outline-secondary" id="nextMonth">→</button>
               </div>
             </div>
           </div>
@@ -345,12 +455,8 @@
           </div>
           <div class="card-body">
             
-            <!-- Info Box -->
             <div class="info-box">
-              📌 <strong>Note:</strong> 
-              <p>1st come 1st serve</p>
-              <p>Tempahan hanya SAH selepas pendaftaran dan bayaran dibuat</p>
-              <p>NO Walk-in</p>
+              📌 <strong>Note:</strong> Past dates and current date are greyed out. Only future classes are shown below.
             </div>
             
             <div id="attendanceCalendar"></div>
@@ -386,6 +492,30 @@
   <script type="module" src="app.js"></script>
   
   <script>
+    // Optional: Auto-scroll to keep active tab visible
+    function scrollActiveTabIntoView() {
+      const activeTab = document.querySelector('.nav-tabs-scrollable .nav-link.active');
+      const wrapper = document.querySelector('.tabs-wrapper');
+      if (activeTab && wrapper) {
+        const tabLeft = activeTab.offsetLeft;
+        const tabWidth = activeTab.offsetWidth;
+        const wrapperWidth = wrapper.offsetWidth;
+        const scrollPosition = tabLeft - (wrapperWidth / 2) + (tabWidth / 2);
+        wrapper.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+      }
+    }
+    
+    // Call when tab changes
+    document.querySelectorAll('.nav-tabs-scrollable .nav-link').forEach(tab => {
+      tab.addEventListener('shown.bs.tab', () => {
+        setTimeout(scrollActiveTabIntoView, 100);
+      });
+    });
+    
+    // Initial scroll on page load
+    setTimeout(scrollActiveTabIntoView, 500);
+
+    // Attendance data fetching and display
     let currentAttendanceDate = new Date();
     let attendanceData = [];
 
@@ -404,7 +534,6 @@
       return dateStr;
     }
 
-    // Check if a date is past (including today)
     function isPastDate(year, month, day) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -441,12 +570,10 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      // Filter data for selected month AND only future dates (not including today)
       const filteredData = attendanceData.filter(item => {
         if (!item.date) return false;
         const dateObj = parseDateDMY(item.date);
         if (!dateObj) return false;
-        // Only include future dates (after today)
         return dateObj.getMonth() === month && 
                dateObj.getFullYear() === year && 
                dateObj > today;
@@ -493,7 +620,6 @@
         const isPast = isPastDate(year, month, day);
         const isTodayDate = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
         
-        // Check if any class on this day is FULL
         let isFull = false;
         if (hasClass && !isPast) {
           const classes = classDates.get(day);
@@ -502,13 +628,11 @@
         
         const isTodayClass = isTodayDate ? 'today' : '';
         
-        // Determine styling
         let dayClass = 'no-class';
         let additionalStyle = '';
         
         if (isPast) {
           dayClass = 'past-date';
-          additionalStyle = '';
         } else if (hasClass) {
           dayClass = isFull ? 'has-class' : 'has-class';
           additionalStyle = isFull ? 'style="background-color: #f8d7da; color: #dc3545;"' : '';
@@ -524,7 +648,6 @@
       
       document.getElementById('attendanceCalendar').innerHTML = calendarHtml;
       
-      // Only add click handlers to future dates with classes
       document.querySelectorAll('#attendanceCalendar .has-class').forEach(el => {
         const day = parseInt(el.getAttribute('data-day'));
         if (!isPastDate(year, month, day)) {
