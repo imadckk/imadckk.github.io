@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-06-06T08:47:23.611405",
+  "last_updated": "2026-06-07T01:28:12.408126",
   "attendance_summary": [
     {
       "date": "9",
@@ -845,21 +845,21 @@
       "date": "07/06/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "49",
+      "present_count": "0",
       "total_students": "50"
     },
     {
       "date": "13/06/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "50",
+      "present_count": "49",
       "total_students": "50"
     },
     {
       "date": "14/06/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "41",
+      "present_count": "46",
       "total_students": "50"
     },
     {
