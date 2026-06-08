@@ -551,7 +551,7 @@
         if (!response.ok) throw new Error('Failed to load attendance data');
         const data = await response.json();
         attendanceData = data.attendance_summary || [];
-        console.log('Loaded attendance data:', attendanceData);
+        // console.log('Loaded attendance data:', attendanceData);
         updateAttendanceDisplay();
       } catch (error) {
         console.error('Error loading attendance:', error);
@@ -579,7 +579,7 @@
                dateObj > today;
       });
       
-      console.log(`Future dates for ${monthNames[month]} ${year}:`, filteredData);
+      // console.log(`Future dates for ${monthNames[month]} ${year}:`, filteredData);
       
       const classDates = new Map();
       filteredData.forEach(item => {
