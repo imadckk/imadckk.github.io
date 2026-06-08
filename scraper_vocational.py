@@ -5,6 +5,7 @@ import re
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
@@ -130,6 +131,10 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     if not class_id or not class_id.isdigit():
                         continue
                     
+                    # Validate date format (should be DD/MM/YYYY)
+                    if not re.match(r'\d{2}/\d{2}/\d{4}', date_str):
+                        continue
+                    
                     # Parse present count
                     try:
                         present_num = int(present_count) if present_count.isdigit() else 0
@@ -156,28 +161,17 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
         print(f"❌ Error: {e}")
         return []
 
-def get_month_attendance_for_url(driver, url_path, category):
-    """Fetch attendance for current month for a specific URL"""
+def get_month_attendance_for_url(driver, url_path):
+    """Fetch attendance for upcoming days (next 60 days) for a specific URL"""
     now = datetime.now()
-    print(f"\n📅 Fetching {category} for {now.strftime('%B %Y')}")
-    
-    # Calculate days in current month
-    if now.month == 12:
-        next_month = datetime(now.year + 1, 1, 1)
-    else:
-        next_month = datetime(now.year, now.month + 1, 1)
-    num_days = (next_month - datetime(now.year, now.month, 1)).days
+    print(f"\n📅 Checking next 60 days from {now.strftime('%d/%m/%Y')}")
     
     all_records = []
     
-    for day in range(1, num_days + 1):
-        current_date = datetime(now.year, now.month, day)
+    # Check from today up to 60 days in the future
+    for days_ahead in range(60):
+        current_date = now + timedelta(days=days_ahead)
         records = get_vocational_attendance_for_date(driver, current_date, url_path)
-        
-        # Add category to each record
-        for record in records:
-            record['category'] = category
-        
         all_records.extend(records)
         time.sleep(1)  # Be nice to the server
     
@@ -191,28 +185,46 @@ def categorize_vocational_records(records):
         'GDL': []
     }
     
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
     for record in records:
         class_name_upper = record['class_name'].upper()
+        class_code_upper = record['class_code'].upper()
         
-        # Determine category
+        # Debug print
+        print(f"  📝 Processing: {record['date']} - {record['class_name']} (Code: {record['class_code']})")
+        
+        # Determine category based on class name
+        # e-Hailing detection
         if "E-HAILING" in class_name_upper or "E HAILING" in class_name_upper:
             category = 'e-Hailing'
+        # Bas Mini / PSV detection  
         elif "PSV" in class_name_upper or "BAS MINI" in class_name_upper or "BAS" in class_name_upper:
             category = 'Bas Mini'
+        # GDL detection
         elif "GDL" in class_name_upper:
             category = 'GDL'
         else:
-            # If can't determine, use the category already set from URL
-            category = record.get('category', 'Unknown')
+            # Try to determine from class code
+            if "PSV" in class_code_upper:
+                category = 'Bas Mini'
+            elif "GDL" in class_code_upper:
+                category = 'GDL'
+            else:
+                print(f"  ⚠️ Unknown category - Class: {record['class_name']}, Code: {record['class_code']}")
+                continue
         
         # Filter to only future dates
         try:
             date_obj = datetime.strptime(record['date'], '%d/%m/%Y')
-            if date_obj > datetime.now():
+            if date_obj >= today:
                 categorized[category].append(record)
-        except:
-            # If date parsing fails, include anyway
-            categorized[category].append(record)
+                print(f"     ✅ Added to {category}")
+            else:
+                print(f"     ⏭️ Skipped (past date)")
+        except Exception as e:
+            print(f"  ⚠️ Date parsing error for {record.get('date', 'unknown')}: {e}")
+            continue
     
     return categorized
 
@@ -235,16 +247,22 @@ def save_vocational_data(categorized_data):
     # Print summary
     print("\n📊 VOCATIONAL SUMMARY:")
     print("=" * 50)
+    total = 0
     for category in ['e-Hailing', 'Bas Mini', 'GDL']:
-        if categorized_data[category]:
-            print(f"\n🚗 {category.upper()}:")
+        count = len(categorized_data[category])
+        total += count
+        if count > 0:
+            print(f"\n🚗 {category.upper()}: {count} class(es)")
             for record in categorized_data[category]:
                 present = int(record['present_count'])
-                total = int(record['total_students'])
-                status = f"{present}/{total}"
-                if present == total and total > 0:
+                total_cap = int(record['total_students'])
+                status = f"{present}/{total_cap}"
+                if present == total_cap and total_cap > 0:
                     status += " 🔴 FULL"
                 print(f"   📅 {record['date']} - {record['class_name']}: {status}")
+    
+    if total == 0:
+        print("\n📭 No upcoming vocational classes found")
 
 def main():
     print("🚀 Vocational Attendance Scraper (Selenium Version)")
@@ -268,19 +286,23 @@ def main():
         if login_with_selenium(driver):
             print("\n✅ Ready to fetch vocational attendance data")
             
-            # Scrape PSV2 (e-Hailing and Bas Mini classes)
+            # Scrape PSV II (e-Hailing and Bas Mini classes)
             print("\n" + "="*50)
-            print("📌 SCRAPING PSV2 (e-Hailing & Bas Mini)")
+            print("📌 SCRAPING PSV II (e-Hailing & Bas Mini)")
             print("="*50)
-            psv2_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Psv2", "PSV2")
-            all_records.extend(psv2_records)
+            psv_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Psv2")
+            print(f"\n   Total records from PSV II: {len(psv_records)}")
+            all_records.extend(psv_records)
             
-            # Scrape GDL2 (GDL classes)
+            # Scrape GDL II (GDL classes)
             print("\n" + "="*50)
-            print("📌 SCRAPING GDL2 (GDL)")
+            print("📌 SCRAPING GDL II (GDL)")
             print("="*50)
-            gdl_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Gdl2", "GDL")
+            gdl_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Gdl2")
+            print(f"\n   Total records from GDL II: {len(gdl_records)}")
             all_records.extend(gdl_records)
+            
+            print(f"\n📊 Total records found: {len(all_records)}")
             
             if all_records:
                 # Categorize the records
@@ -293,7 +315,7 @@ def main():
                 print(f"   - Bas Mini: {len(categorized_data['Bas Mini'])}")
                 print(f"   - GDL: {len(categorized_data['GDL'])}")
             else:
-                print("\n⚠️ No vocational records found for this month")
+                print("\n⚠️ No vocational records found")
                 empty_data = {
                     'e-Hailing': [],
                     'Bas Mini': [],
