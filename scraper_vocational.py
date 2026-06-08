@@ -2,10 +2,9 @@ import json
 import os
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
@@ -73,16 +72,42 @@ def login_with_selenium(driver):
         print(f"❌ Login error: {e}")
         return False
 
-def get_vocational_attendance(driver, url_path, category_filter=None):
-    """Fetch vocational attendance from a specific URL"""
-    all_records = []
-    
+def get_vocational_attendance_for_date(driver, search_date, url_path):
+    """Fetch vocational attendance for a specific date"""
     try:
-        print(f"  🔍 Scraping {url_path}...")
+        formatted_date_input = search_date.strftime("%d/%m/%Y")
+        print(f"  🔍 Checking {formatted_date_input}...", end=" ", flush=True)
+        
+        # Navigate to the page
         driver.get(f"{BASE_URL}{url_path}")
+        time.sleep(2)
+        
+        # Find and fill the date field
+        try:
+            date_field = driver.find_element(By.ID, "lessonDate")
+            date_field.clear()
+            date_field.send_keys(formatted_date_input)
+        except Exception as e:
+            print(f"date field error", end=" ")
+            return []
+        
+        # Click search button
+        try:
+            search_button = driver.find_element(By.ID, "mySearchButton")
+            search_button.click()
+        except:
+            try:
+                search_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
+                search_button.click()
+            except:
+                print("no button", end=" ")
+                return []
+        
         time.sleep(3)
         
+        # Parse the results
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        records = []
         
         # Find all tables
         tables = soup.find_all('table')
@@ -90,13 +115,11 @@ def get_vocational_attendance(driver, url_path, category_filter=None):
         for table in tables:
             rows = table.find_all('tr')
             for row in rows:
-                # Skip header rows
                 if row.find('th'):
                     continue
                 
                 cells = row.find_all('td')
                 if len(cells) >= 5:
-                    # Extract data based on the HTML structure
                     class_id = cells[0].get_text(strip=True) if len(cells) > 0 else ""
                     class_code = cells[1].get_text(strip=True) if len(cells) > 1 else ""
                     date_str = cells[2].get_text(strip=True) if len(cells) > 2 else ""
@@ -107,102 +130,101 @@ def get_vocational_attendance(driver, url_path, category_filter=None):
                     if not class_id or not class_id.isdigit():
                         continue
                     
-                    # Determine category based on class name or URL
-                    category = "Unknown"
-                    if category_filter:
-                        category = category_filter
-                    else:
-                        class_name_upper = class_name.upper()
-                        if "E-HAILING" in class_name_upper or "E HAILING" in class_name_upper:
-                            category = "e-Hailing"
-                        elif "PSV" in class_name_upper or "BAS MINI" in class_name_upper:
-                            category = "Bas Mini"
-                        elif "GDL" in class_name_upper:
-                            category = "GDL"
-                    
                     # Parse present count
                     try:
                         present_num = int(present_count) if present_count.isdigit() else 0
                     except:
                         present_num = 0
                     
-                    # Parse date
-                    try:
-                        date_obj = datetime.strptime(date_str, '%d/%m/%Y')
-                    except:
-                        date_obj = None
-                    
-                    # Only include future dates
-                    if date_obj and date_obj > datetime.now():
-                        all_records.append({
-                            'date': date_str,
-                            'class_id': class_id,
-                            'class_name': class_name,
-                            'class_code': class_code,
-                            'category': category,
-                            'present_count': str(present_num),
-                            'total_students': str(VOCATIONAL_CAPACITY),
-                            'timestamp': date_obj.isoformat()
-                        })
+                    records.append({
+                        'date': date_str,
+                        'class_id': class_id,
+                        'class_name': class_name,
+                        'class_code': class_code,
+                        'present_count': str(present_num),
+                        'total_students': str(VOCATIONAL_CAPACITY)
+                    })
         
-        print(f"     ✅ Found {len(all_records)} class(es)")
-        return all_records
+        if records:
+            print(f"✅ Found {len(records)} class(es)")
+        else:
+            print(f"📭 No classes")
+        
+        return records
         
     except Exception as e:
-        print(f"     ❌ Error scraping {url_path}: {e}")
+        print(f"❌ Error: {e}")
         return []
 
-def scrape_all_vocational(driver):
-    """Scrape all vocational categories"""
-    print("\n📅 Fetching Vocational Attendance Data")
-    print("=" * 50)
+def get_month_attendance_for_url(driver, url_path, category):
+    """Fetch attendance for current month for a specific URL"""
+    now = datetime.now()
+    print(f"\n📅 Fetching {category} for {now.strftime('%B %Y')}")
+    
+    # Calculate days in current month
+    if now.month == 12:
+        next_month = datetime(now.year + 1, 1, 1)
+    else:
+        next_month = datetime(now.year, now.month + 1, 1)
+    num_days = (next_month - datetime(now.year, now.month, 1)).days
     
     all_records = []
     
-    # PSV2 URL contains both e-Hailing and Bas Mini
-    print("\n📌 Scraping PSV2 (e-Hailing & Bas Mini)...")
-    psv2_records = get_vocational_attendance(driver, "/star/AttendanceRecord/Psv2")
-    
-    # Categorize PSV2 records
-    for record in psv2_records:
-        class_name_upper = record['class_name'].upper()
-        if "E-HAILING" in class_name_upper or "E HAILING" in class_name_upper:
-            record['category'] = "e-Hailing"
-        elif "PSV" in class_name_upper or "BAS" in class_name_upper:
-            record['category'] = "Bas Mini"
-        all_records.append(record)
-    
-    # GDL2 URL contains GDL classes
-    print("\n📌 Scraping GDL2 (GDL)...")
-    gdl_records = get_vocational_attendance(driver, "/star/AttendanceRecord/Gdl2")
-    for record in gdl_records:
-        record['category'] = "GDL"
-        all_records.append(record)
+    for day in range(1, num_days + 1):
+        current_date = datetime(now.year, now.month, day)
+        records = get_vocational_attendance_for_date(driver, current_date, url_path)
+        
+        # Add category to each record
+        for record in records:
+            record['category'] = category
+        
+        all_records.extend(records)
+        time.sleep(1)  # Be nice to the server
     
     return all_records
 
-def save_vocational_data(attendance_records):
-    """Save vocational data to JSON file"""
-    # Sort by date
-    attendance_records.sort(key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y'))
-    
-    # Group by category
-    grouped_data = {
+def categorize_vocational_records(records):
+    """Categorize records into e-Hailing, Bas Mini, or GDL based on class name"""
+    categorized = {
         'e-Hailing': [],
         'Bas Mini': [],
         'GDL': []
     }
     
-    for record in attendance_records:
-        category = record['category']
-        if category in grouped_data:
-            # Remove timestamp field (used only for sorting)
-            clean_record = {k: v for k, v in record.items() if k != 'timestamp'}
-            grouped_data[category].append(clean_record)
+    for record in records:
+        class_name_upper = record['class_name'].upper()
+        
+        # Determine category
+        if "E-HAILING" in class_name_upper or "E HAILING" in class_name_upper:
+            category = 'e-Hailing'
+        elif "PSV" in class_name_upper or "BAS MINI" in class_name_upper or "BAS" in class_name_upper:
+            category = 'Bas Mini'
+        elif "GDL" in class_name_upper:
+            category = 'GDL'
+        else:
+            # If can't determine, use the category already set from URL
+            category = record.get('category', 'Unknown')
+        
+        # Filter to only future dates
+        try:
+            date_obj = datetime.strptime(record['date'], '%d/%m/%Y')
+            if date_obj > datetime.now():
+                categorized[category].append(record)
+        except:
+            # If date parsing fails, include anyway
+            categorized[category].append(record)
+    
+    return categorized
+
+def save_vocational_data(categorized_data):
+    """Save vocational data to JSON file"""
+    # Sort each category by date
+    for category in categorized_data:
+        categorized_data[category].sort(key=lambda x: datetime.strptime(x['date'], '%d/%m/%Y'))
     
     output = {
         'last_updated': datetime.now().isoformat(),
-        'vocational_summary': grouped_data
+        'vocational_summary': categorized_data
     }
     
     with open('vocational.json', 'w') as f:
@@ -214,9 +236,9 @@ def save_vocational_data(attendance_records):
     print("\n📊 VOCATIONAL SUMMARY:")
     print("=" * 50)
     for category in ['e-Hailing', 'Bas Mini', 'GDL']:
-        if grouped_data[category]:
+        if categorized_data[category]:
             print(f"\n🚗 {category.upper()}:")
-            for record in grouped_data[category]:
+            for record in categorized_data[category]:
                 present = int(record['present_count'])
                 total = int(record['total_students'])
                 status = f"{present}/{total}"
@@ -236,6 +258,8 @@ def main():
         exit(1)
     
     driver = None
+    all_records = []
+    
     try:
         print("📱 Setting up browser...")
         driver = setup_driver()
@@ -243,23 +267,39 @@ def main():
         
         if login_with_selenium(driver):
             print("\n✅ Ready to fetch vocational attendance data")
-            vocational_data = scrape_all_vocational(driver)
             
-            if vocational_data:
-                save_vocational_data(vocational_data)
-                print(f"\n✅ Successfully processed {len(vocational_data)} vocational class records")
+            # Scrape PSV2 (e-Hailing and Bas Mini classes)
+            print("\n" + "="*50)
+            print("📌 SCRAPING PSV2 (e-Hailing & Bas Mini)")
+            print("="*50)
+            psv2_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Psv2", "PSV2")
+            all_records.extend(psv2_records)
+            
+            # Scrape GDL2 (GDL classes)
+            print("\n" + "="*50)
+            print("📌 SCRAPING GDL2 (GDL)")
+            print("="*50)
+            gdl_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Gdl2", "GDL")
+            all_records.extend(gdl_records)
+            
+            if all_records:
+                # Categorize the records
+                categorized_data = categorize_vocational_records(all_records)
+                save_vocational_data(categorized_data)
+                
+                total_count = sum(len(v) for v in categorized_data.values())
+                print(f"\n✅ Successfully processed {total_count} vocational class records")
+                print(f"   - e-Hailing: {len(categorized_data['e-Hailing'])}")
+                print(f"   - Bas Mini: {len(categorized_data['Bas Mini'])}")
+                print(f"   - GDL: {len(categorized_data['GDL'])}")
             else:
-                print("\n⚠️ No vocational records found")
-                output = {
-                    'last_updated': datetime.now().isoformat(),
-                    'vocational_summary': {
-                        'e-Hailing': [],
-                        'Bas Mini': [],
-                        'GDL': []
-                    }
+                print("\n⚠️ No vocational records found for this month")
+                empty_data = {
+                    'e-Hailing': [],
+                    'Bas Mini': [],
+                    'GDL': []
                 }
-                with open('vocational.json', 'w') as f:
-                    json.dump(output, f, indent=2)
+                save_vocational_data(empty_data)
         else:
             print("❌ Login failed")
             exit(1)
