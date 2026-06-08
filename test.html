@@ -97,7 +97,7 @@
       border-radius: 2px;
     }
     
-    /* Scroll buttons for desktop (optional) */
+    /* Scroll buttons for desktop */
     .scroll-btn {
       position: absolute;
       top: 50%;
@@ -139,7 +139,7 @@
       }
     }
 
-    /* Rest of your existing styles */
+    /* Tab content */
     .tab-content {
       margin-top: 20px;
     }
@@ -308,6 +308,88 @@
       margin-left: 8px;
     }
 
+    /* Vocational Tables */
+    .vocational-section {
+      margin-bottom: 30px;
+    }
+    
+    .vocational-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    
+    .vocational-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px 20px;
+      font-weight: 600;
+      font-size: 1.2em;
+    }
+    
+    .vocational-header.e-hailing {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .vocational-header.bas-mini {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .vocational-header.gdl {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .vocational-table {
+      width: 100%;
+      margin: 0;
+    }
+    
+    .vocational-table th {
+      background-color: #f8f9fa;
+      padding: 12px;
+      font-weight: 600;
+      color: #495057;
+      border-bottom: 2px solid #dee2e6;
+    }
+    
+    .vocational-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e9ecef;
+      vertical-align: middle;
+    }
+    
+    .vocational-table tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      font-weight: 600;
+    }
+    
+    .status-available {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    
+    .status-full {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+      background: white;
+      border-radius: 12px;
+    }
+    
     .loading, .no-data, .error {
       text-align: center;
       padding: 40px;
@@ -367,6 +449,11 @@
         margin-top: 5px;
         display: inline-block;
       }
+      .vocational-table th, 
+      .vocational-table td {
+        padding: 8px;
+        font-size: 0.85em;
+      }
     }
   </style>
 </head>
@@ -387,19 +474,11 @@
             🧑‍🏫 KPP01 Gabungan
           </button>
         </div>
-        <!-- Add more tabs here in the future -->
-        <!--
         <div class="nav-item" role="presentation">
-          <button class="nav-link" id="tab3-tab" data-bs-toggle="tab" data-bs-target="#tab3" type="button" role="tab">
-            📋 New Tab 3
+          <button class="nav-link" id="vocational-tab" data-bs-toggle="tab" data-bs-target="#vocational" type="button" role="tab" aria-controls="vocational" aria-selected="false">
+            🚛 Vocational
           </button>
         </div>
-        <div class="nav-item" role="presentation">
-          <button class="nav-link" id="tab4-tab" data-bs-toggle="tab" data-bs-target="#tab4" type="button" role="tab">
-            📋 New Tab 4
-          </button>
-        </div>
-        -->
       </div>
     </div>
 
@@ -443,7 +522,7 @@
         </div>
       </div>
 
-      <!-- Tab 2: Attendance Summary -->
+      <!-- Tab 2: KPP01 Attendance Summary -->
       <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
         <div class="card shadow-sm mx-auto" style="max-width: 800px;">
           <div class="card-header bg-light">
@@ -483,16 +562,46 @@
           </div>
         </div>
       </div>
+
+      <!-- Tab 3: Vocational (e-Hailing, Bas Mini, GDL) -->
+      <div class="tab-pane fade" id="vocational" role="tabpanel" aria-labelledby="vocational-tab">
+        <div class="mx-auto" style="max-width: 900px;">
+          
+          <div class="info-box">
+            📌 <strong>Vocational Classes:</strong> e-Hailing, Bas Mini, and GDL (Goods Driving License). All classes have capacity of 50 students.
+          </div>
+          
+          <div id="vocationalContent">
+            <div class="loading">📊 Loading vocational class data...</div>
+          </div>
+        </div>
+
+        <div class="legend d-flex justify-content-center align-items-center gap-4 mt-4 flex-wrap">
+          <div class="d-flex align-items-center">
+            <div class="legend-box" style="background-color: #d4edda;"></div>
+            <small>Available (1-49 students)</small>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="legend-box" style="background-color: #f8d7da;"></div>
+            <small>Full (50/50)</small>
+          </div>
+          <div class="d-flex align-items-center">
+            <div class="legend-box" style="background-color: #e9ecef;"></div>
+            <small>Past Date</small>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module" src="app.js"></script>
   
   <script>
-    // Optional: Auto-scroll to keep active tab visible
+    // ============================================
+    // TAB SCROLLING FUNCTIONALITY
+    // ============================================
     function scrollActiveTabIntoView() {
       const activeTab = document.querySelector('.nav-tabs-scrollable .nav-link.active');
       const wrapper = document.querySelector('.tabs-wrapper');
@@ -505,19 +614,91 @@
       }
     }
     
-    // Call when tab changes
     document.querySelectorAll('.nav-tabs-scrollable .nav-link').forEach(tab => {
       tab.addEventListener('shown.bs.tab', () => {
         setTimeout(scrollActiveTabIntoView, 100);
       });
     });
     
-    // Initial scroll on page load
     setTimeout(scrollActiveTabIntoView, 500);
 
-    // Attendance data fetching and display
+    // ============================================
+    // LOCATION AVAILABILITY (TAB 1)
+    // ============================================
+    let currentDate = new Date();
+    let availabilityData = [];
+
+    async function loadAvailability() {
+      try {
+        const response = await fetch('availability.json?' + Date.now());
+        if (!response.ok) throw new Error('Availability data not found');
+        const data = await response.json();
+        availabilityData = data;
+        renderCalendar();
+      } catch (error) {
+        console.log('No availability data, using defaults');
+        renderCalendar();
+      }
+    }
+
+    function renderCalendar() {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                         'July', 'August', 'September', 'October', 'November', 'December'];
+      document.getElementById('currentMonth').innerText = `${monthNames[month]} ${year}`;
+      
+      const firstDay = new Date(year, month, 1);
+      const startDay = firstDay.getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      
+      let calendarHtml = '';
+      
+      const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      dayHeaders.forEach(day => {
+        calendarHtml += `<div class="text-center fw-bold small mb-2">${day}</div>`;
+      });
+      
+      for (let i = 0; i < startDay; i++) {
+        calendarHtml += `<div class="calendar-day other-month"></div>`;
+      }
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+        const isAvailable = availabilityData[dateStr] === true;
+        
+        let dayClass = 'calendar-day';
+        if (isAvailable) {
+          dayClass += ' active-day';
+        } else if (availabilityData[dateStr] === false) {
+          dayClass += ' inactive-day';
+        }
+        
+        const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
+        if (isToday) dayClass += ' today';
+        
+        calendarHtml += `<div class="${dayClass}">${day}</div>`;
+      }
+      
+      document.getElementById('calendar').innerHTML = calendarHtml;
+    }
+
+    document.getElementById('prevMonth').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    });
+    
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    });
+
+    // ============================================
+    // KPP01 ATTENDANCE (TAB 2)
+    // ============================================
     let currentAttendanceDate = new Date();
-    let attendanceData = [];
+    let attendanceData = { kpp01: [] };
 
     function parseDateDMY(dateStr) {
       if (!dateStr) return null;
@@ -529,29 +710,23 @@
       return new Date(year, month, day);
     }
 
-    function formatDate(dateStr) {
-      if (!dateStr) return '';
-      return dateStr;
-    }
-
     function isPastDate(year, month, day) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const checkDate = new Date(year, month, day);
       checkDate.setHours(0, 0, 0, 0);
-      return checkDate <= today;
+      return checkDate < today;
     }
 
     async function loadAttendanceData() {
       const detailsDiv = document.getElementById('attendanceDetails');
-      detailsDiv.innerHTML = '<div class="loading">📊 Loading attendance data...</div>';
+      detailsDiv.innerHTML = '<div class="loading">📊 Loading KPP01 attendance data...</div>';
       
       try {
         const response = await fetch('attendance.json?' + Date.now());
         if (!response.ok) throw new Error('Failed to load attendance data');
         const data = await response.json();
-        attendanceData = data.attendance_summary || [];
-        console.log('Loaded attendance data:', attendanceData);
+        attendanceData = data;
         updateAttendanceDisplay();
       } catch (error) {
         console.error('Error loading attendance:', error);
@@ -570,16 +745,14 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
-      const filteredData = attendanceData.filter(item => {
+      const kpp01Data = attendanceData.kpp01 || [];
+      const filteredData = kpp01Data.filter(item => {
         if (!item.date) return false;
         const dateObj = parseDateDMY(item.date);
         if (!dateObj) return false;
         return dateObj.getMonth() === month && 
-               dateObj.getFullYear() === year && 
-               dateObj > today;
+               dateObj.getFullYear() === year;
       });
-      
-      console.log(`Future dates for ${monthNames[month]} ${year}:`, filteredData);
       
       const classDates = new Map();
       filteredData.forEach(item => {
@@ -663,7 +836,7 @@
 
     function renderAttendanceDetails(data) {
       if (!data || data.length === 0) {
-        document.getElementById('attendanceDetails').innerHTML = '<div class="no-data">📅 No upcoming classes this month</div>';
+        document.getElementById('attendanceDetails').innerHTML = '<div class="no-data">📅 No upcoming KPP01 classes this month</div>';
         return;
       }
       
@@ -682,17 +855,17 @@
         return dateA - dateB;
       });
       
-      let html = '<div class="attendance-summary"><h5>📋 Upcoming Classes</h5><hr>';
+      let html = '<div class="attendance-summary"><h5>📋 Upcoming KPP01 Classes</h5><hr>';
       
       sortedDates.forEach(date => {
         const classes = groupedByDate[date];
         
         html += `<div class="date-group">
-                   <div class="date">📅 ${formatDate(date)}</div>`;
+                   <div class="date">📅 ${date}</div>`;
         
         classes.forEach(cls => {
           const present = parseInt(cls.present_count) || 0;
-          const total = parseInt(cls.total_students) || 0;
+          const total = parseInt(cls.total_students) || 50;
           const className = cls.class_name || 'Class';
           const classType = cls.class_type || '';
           const isFull = present === total && total > 0;
@@ -723,13 +896,13 @@
       const date = classes[0].date;
       let html = `
         <div class="attendance-summary">
-          <h5>📅 Class Details for ${formatDate(date)}</h5>
+          <h5>📅 KPP01 Class Details for ${date}</h5>
           <hr>
       `;
       
       classes.forEach(cls => {
         const present = parseInt(cls.present_count) || 0;
-        const total = parseInt(cls.total_students) || 0;
+        const total = parseInt(cls.total_students) || 50;
         const className = cls.class_name || 'Class';
         const classType = cls.class_type || '';
         const isFull = present === total && total > 0;
@@ -743,7 +916,7 @@
                  </div>`;
       });
       
-      html += `<button class="btn btn-sm btn-outline-secondary mt-3" onclick="updateAttendanceDisplay();">← Back to calendar</button>`;
+      html += `<button class="btn btn-sm btn-outline-secondary mt-3" onclick="location.reload();">← Back to calendar</button>`;
       html += `</div>`;
       
       document.getElementById('attendanceDetails').innerHTML = html;
@@ -754,6 +927,139 @@
       updateAttendanceDisplay();
     }
 
+    // ============================================
+    // VOCATIONAL ATTENDANCE (TAB 3)
+    // ============================================
+    let vocationalData = {
+      e_hailing: [],
+      bas_mini: [],
+      gdl: []
+    };
+
+    async function loadVocationalData() {
+      const container = document.getElementById('vocationalContent');
+      container.innerHTML = '<div class="loading">📊 Loading vocational class data...</div>';
+      
+      try {
+        const response = await fetch('attendance.json?' + Date.now());
+        if (!response.ok) throw new Error('Failed to load attendance data');
+        const data = await response.json();
+        
+        vocationalData = data.vocational || { e_hailing: [], bas_mini: [], gdl: [] };
+        renderVocationalTables();
+      } catch (error) {
+        console.error('Error loading vocational data:', error);
+        container.innerHTML = '<div class="error">❌ Error loading vocational class data</div>';
+      }
+    }
+
+    function renderVocationalTables() {
+      const container = document.getElementById('vocationalContent');
+      
+      // Check if any data exists
+      const hasData = (vocationalData.e_hailing && vocationalData.e_hailing.length > 0) ||
+                      (vocationalData.bas_mini && vocationalData.bas_mini.length > 0) ||
+                      (vocationalData.gdl && vocationalData.gdl.length > 0);
+      
+      if (!hasData) {
+        container.innerHTML = '<div class="empty-state">📭 No upcoming vocational classes found</div>';
+        return;
+      }
+      
+      let html = '';
+      
+      // e-Hailing Table
+      html += renderVocationalTable('e-Hailing', vocationalData.e_hailing || [], 'e-hailing');
+      
+      // Bas Mini Table
+      html += renderVocationalTable('Bas Mini', vocationalData.bas_mini || [], 'bas-mini');
+      
+      // GDL Table
+      html += renderVocationalTable('GDL (Goods Driving License)', vocationalData.gdl || [], 'gdl');
+      
+      container.innerHTML = html;
+    }
+
+    function renderVocationalTable(title, records, categoryClass) {
+      if (!records || records.length === 0) {
+        return `
+          <div class="vocational-card">
+            <div class="vocational-header ${categoryClass}">
+              🚗 ${title}
+            </div>
+            <div class="empty-state" style="padding: 20px;">
+              No upcoming classes
+            </div>
+          </div>
+        `;
+      }
+      
+      // Sort records by date
+      const sortedRecords = [...records].sort((a, b) => {
+        const dateA = parseDateDMY(a.date);
+        const dateB = parseDateDMY(b.date);
+        return dateA - dateB;
+      });
+      
+      let tableHtml = `
+        <div class="vocational-card">
+          <div class="vocational-header ${categoryClass}">
+            ${getCategoryIcon(categoryClass)} ${title}
+          </div>
+          <div class="table-responsive">
+            <table class="vocational-table table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Class Type</th>
+                  <th>Class Name</th>
+                  <th>Booked</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+      `;
+      
+      sortedRecords.forEach(record => {
+        const present = parseInt(record.present_count) || 0;
+        const total = parseInt(record.total_students) || 50;
+        const isFull = present === total;
+        const statusClass = isFull ? 'status-full' : 'status-available';
+        const statusText = isFull ? '🔴 FULL' : '✅ Available';
+        
+        tableHtml += `
+          <tr>
+            <td><strong>${record.date}</strong></td>
+            <td>${record.class_type || '-'}</td>
+            <td>${record.class_name || '-'}</td>
+            <td>${present}/${total}</td>
+            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+          </tr>
+        `;
+      });
+      
+      tableHtml += `
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+      
+      return tableHtml;
+    }
+
+    function getCategoryIcon(category) {
+      switch(category) {
+        case 'e-hailing': return '🚕';
+        case 'bas-mini': return '🚌';
+        case 'gdl': return '🚚';
+        default: return '📋';
+      }
+    }
+
+    // ============================================
+    // EVENT LISTENERS
+    // ============================================
     document.getElementById('prevAttendanceMonth').addEventListener('click', () => changeAttendanceMonth(-1));
     document.getElementById('nextAttendanceMonth').addEventListener('click', () => changeAttendanceMonth(1));
     
@@ -761,8 +1067,16 @@
       loadAttendanceData();
     });
     
+    document.getElementById('vocational-tab').addEventListener('shown.bs.tab', () => {
+      loadVocationalData();
+    });
+    
+    // Initialize all
+    loadAvailability();
+    
     setTimeout(() => {
       loadAttendanceData();
+      loadVocationalData();
     }, 500);
   </script>
 </body>
