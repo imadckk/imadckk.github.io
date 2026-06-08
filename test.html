@@ -97,7 +97,7 @@
       border-radius: 2px;
     }
     
-    /* Scroll buttons for desktop */
+    /* Scroll buttons for desktop (optional) */
     .scroll-btn {
       position: absolute;
       top: 50%;
@@ -139,7 +139,7 @@
       }
     }
 
-    /* Tab content */
+    /* Rest of your existing styles */
     .tab-content {
       margin-top: 20px;
     }
@@ -257,8 +257,10 @@
     /* Attendance Summary Card */
     .attendance-summary {
       background: white;
-      padding: 10px;
-      margin-bottom: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
     .date-group {
@@ -275,431 +277,236 @@
     }
 
     .class-item {
-      color: #555;
-      margin-bottom: 5px;
-      padding: 5px 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .class-item:last-child {
+      border-bottom: none;
     }
 
     .class-info {
-      flex: 1;
+      font-weight: 500;
+      color: #2c3e50;
     }
 
     .attendance-count {
-      font-weight: 600;
-      color: #28a745;
+      font-weight: bold;
+      color: #0d6efd;
+      padding: 4px 8px;
+      background: #e7f1ff;
+      border-radius: 4px;
+      display: inline-block;
     }
 
     .attendance-count.full {
       color: #dc3545;
-      font-weight: bold;
+      background: #ffe7e7;
     }
 
     .full-badge {
       background-color: #dc3545;
       color: white;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 0.7em;
-      font-weight: bold;
-      margin-left: 8px;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.85em;
+      margin-left: 10px;
     }
 
-    /* Vocational Tables */
-    .vocational-section {
-      margin-bottom: 30px;
-    }
-    
-    .vocational-card {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-    }
-    
-    .vocational-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 15px 20px;
-      font-weight: 600;
-      font-size: 1.2em;
-    }
-    
-    .vocational-header.e-hailing {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-    
-    .vocational-header.bas-mini {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-    
-    .vocational-header.gdl {
-      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    }
-    
-    .vocational-table {
-      width: 100%;
-      margin: 0;
-    }
-    
-    .vocational-table th {
-      background-color: #f8f9fa;
-      padding: 12px;
-      font-weight: 600;
-      color: #495057;
-      border-bottom: 2px solid #dee2e6;
-    }
-    
-    .vocational-table td {
-      padding: 12px;
-      border-bottom: 1px solid #e9ecef;
-      vertical-align: middle;
-    }
-    
-    .vocational-table tr:hover {
-      background-color: #f8f9fa;
-    }
-    
-    .status-badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.85em;
-      font-weight: 600;
-    }
-    
-    .status-available {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    
-    .status-full {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-    
-    .empty-state {
+    .loading {
       text-align: center;
       padding: 40px;
       color: #6c757d;
-      background: white;
-      border-radius: 12px;
-    }
-    
-    .loading, .no-data, .error {
-      text-align: center;
-      padding: 40px;
-      color: #7f8c8d;
+      font-size: 1.1em;
     }
 
     .error {
-      color: #e74c3c;
-    }
-
-    /* Legend */
-    .legend-box {
-      width: 30px;
-      height: 18px;
-      border-radius: 4px;
-      margin-right: 8px;
-    }
-
-    .legend small {
-      font-size: 0.9rem;
-    }
-
-    /* Month Navigation for Attendance */
-    .attendance-month-nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .info-box {
-      background-color: #e7f3ff;
-      border-left: 4px solid #0d6efd;
-      padding: 10px 15px;
-      margin-bottom: 15px;
+      text-align: center;
+      padding: 40px;
+      color: #dc3545;
+      font-size: 1.1em;
+      background: #f8d7da;
       border-radius: 8px;
-      font-size: 0.85em;
-      color: #004085;
     }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .calendar-day {
-        height: 38px;
-        font-size: 1.0rem;
-      }
-      .legend-box {
-        width: 24px;
-        height: 14px;
-      }
-      .class-item {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .full-badge {
-        margin-left: 0;
-        margin-top: 5px;
-        display: inline-block;
-      }
-      .vocational-table th, 
-      .vocational-table td {
-        padding: 8px;
-        font-size: 0.85em;
-      }
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #6c757d;
+      font-size: 1.1em;
+    }
+
+    /* Vocational Categories Table */
+    .vocational-category {
+      margin-bottom: 30px;
+    }
+
+    .vocational-category h4 {
+      font-weight: 600;
+      margin-bottom: 15px;
+      padding: 10px 15px;
+      background: #f8f9fa;
+      border-left: 4px solid #0d6efd;
+      border-radius: 4px;
+    }
+
+    .vocational-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+
+    .vocational-table thead {
+      background-color: #f8f9fa;
+      border-bottom: 2px solid #dee2e6;
+    }
+
+    .vocational-table th {
+      padding: 12px 15px;
+      font-weight: 600;
+      color: #2c3e50;
+      text-align: left;
+      font-size: 0.95em;
+    }
+
+    .vocational-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #f0f0f0;
+      color: #555;
+    }
+
+    .vocational-table tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .vocational-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .attendance-status {
+      font-weight: 600;
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .attendance-status.available {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .attendance-status.full {
+      background-color: #f8d7da;
+      color: #dc3545;
     }
   </style>
 </head>
 
 <body>
-  <div class="container mt-4">
-
-    <!-- Horizontal Scrollable Tabs -->
+  <div class="container-lg my-5">
+    <h1 class="mb-4">🎓 ADC Driving School - Attendance Dashboard</h1>
+    
+    <!-- Main Navigation Tabs -->
     <div class="tabs-wrapper">
-      <div class="nav-tabs-scrollable" id="myTab" role="tablist">
-        <div class="nav-item" role="presentation">
-          <button class="nav-link active" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab" aria-controls="location" aria-selected="true">
-            🖥️ Computer Test
+      <ul class="nav nav-tabs-scrollable" id="mainTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="computer-test-tab" data-bs-toggle="tab" 
+                  data-bs-target="#computer-test-tab-content" type="button" role="tab">
+            💻 Computer Test
           </button>
-        </div>
-        <div class="nav-item" role="presentation">
-          <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" type="button" role="tab" aria-controls="attendance" aria-selected="false">
-            🧑‍🏫 KPP01 Gabungan
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="kpp01-tab" data-bs-toggle="tab" 
+                  data-bs-target="#kpp01-tab-content" type="button" role="tab">
+            🚗 KPP01
           </button>
-        </div>
-        <div class="nav-item" role="presentation">
-          <button class="nav-link" id="vocational-tab" data-bs-toggle="tab" data-bs-target="#vocational" type="button" role="tab" aria-controls="vocational" aria-selected="false">
-            🚛 Vocational
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="vocational-tab" data-bs-toggle="tab" 
+                  data-bs-target="#vocational-tab-content" type="button" role="tab">
+            📚 Vocational
           </button>
-        </div>
-      </div>
+        </li>
+      </ul>
     </div>
 
     <!-- Tab Content -->
-    <div class="tab-content" id="myTabContent">
+    <div class="tab-content" id="mainTabsContent">
       
-      <!-- Tab 1: Location Availability -->
-      <div class="tab-pane fade show active" id="location" role="tabpanel" aria-labelledby="location-tab">
-        <div class="d-flex justify-content-center mb-4">
-          <div class="btn-group shadow-sm" role="group">
-            <button type="button" class="btn location-toggle btn-red" data-location="location-a">
-              -
-            </button>
+      <!-- Computer Test Tab -->
+      <div class="tab-pane fade show active" id="computer-test-tab-content" role="tabpanel">
+        <div class="row mt-4">
+          <div class="col-lg-8">
+            <div class="attendance-summary">
+              <h5>💻 Computer Test Attendance</h5>
+              <hr>
+              <p class="text-muted">Computer test attendance data coming soon...</p>
+            </div>
           </div>
-        </div>
-
-        <div class="card shadow-sm mx-auto" style="max-width: 800px;">
-          <div class="card-header bg-light">
-            <div class="d-flex justify-content-between align-items-center">
-              <h5 id="currentMonth" class="fw-semibold mb-0"></h5>
-              <div>
-                <button class="btn btn-sm btn-outline-secondary" id="prevMonth">←</button>
-                <button class="btn btn-sm btn-outline-secondary" id="nextMonth">→</button>
+          <div class="col-lg-4">
+            <div class="attendance-summary">
+              <h5>📊 Computer Test Calendar</h5>
+              <div id="calendar" class="mt-3"></div>
+              <div class="text-center mt-3">
+                <button id="prevMonth" class="btn btn-sm btn-outline-primary">← Previous</button>
+                <span id="monthLabel" class="mx-2"></span>
+                <button id="nextMonth" class="btn btn-sm btn-outline-primary">Next →</button>
               </div>
             </div>
           </div>
-          <div class="card-body">
-            <div id="calendar"></div>
-          </div>
-        </div>
-
-        <div class="legend d-flex justify-content-center align-items-center gap-4 mt-4">
-          <div class="d-flex align-items-center">
-            <div class="legend-box active-day"></div>
-            <small>Available</small>
-          </div>
-          <div class="d-flex align-items-center">
-            <div class="legend-box inactive-day"></div>
-            <small>Unavailable</small>
-          </div>
         </div>
       </div>
 
-      <!-- Tab 2: KPP01 Attendance Summary -->
-      <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
-        <div class="card shadow-sm mx-auto" style="max-width: 800px;">
-          <div class="card-header bg-light">
-            <div class="attendance-month-nav">
-              <button class="btn btn-sm btn-outline-secondary" id="prevAttendanceMonth">← Previous</button>
-              <h5 id="attendanceMonth" class="fw-semibold mb-0">JUNE 2026</h5>
-              <button class="btn btn-sm btn-outline-secondary" id="nextAttendanceMonth">Next →</button>
+      <!-- KPP01 Tab -->
+      <div class="tab-pane fade" id="kpp01-tab-content" role="tabpanel">
+        <div class="row mt-4">
+          <div class="col-lg-8">
+            <div id="kpp01-details" class="attendance-summary">
+              <h5>🚗 KPP01 Classes</h5>
+              <hr>
+              <div class="loading">📊 Loading KPP01 data...</div>
             </div>
           </div>
-          <div class="card-body">
-            
-            <div class="info-box">
-              📌 <strong>Note:</strong> No Walk-in, No booking without payment, 1st come 1st serve
+          <div class="col-lg-4">
+            <div class="attendance-summary">
+              <h5>📅 KPP01 Calendar</h5>
+              <div id="kpp01-calendar" class="mt-3"></div>
+              <div class="text-center mt-3">
+                <button id="prevKpp01Month" class="btn btn-sm btn-outline-primary">← Previous</button>
+                <span id="kpp01MonthLabel" class="mx-2"></span>
+                <button id="nextKpp01Month" class="btn btn-sm btn-outline-primary">Next →</button>
+              </div>
             </div>
-            
-            <div id="attendanceCalendar"></div>
-            <div id="attendanceDetails" style="margin-top: 30px;"></div>
-          </div>
-        </div>
-
-        <div class="legend d-flex justify-content-center align-items-center gap-4 mt-4">
-          <div class="d-flex align-items-center">
-            <div class="legend-box has-class"></div>
-            <small>Future Class</small>
-          </div>
-          <div class="d-flex align-items-center">
-            <div class="legend-box no-class"></div>
-            <small>No Class</small>
-          </div>
-          <div class="d-flex align-items-center">
-            <div class="legend-box" style="background-color: #dc3545;"></div>
-            <small>Full Class</small>
-          </div>
-          <div class="d-flex align-items-center">
-            <div class="legend-box" style="background-color: #e9ecef;"></div>
-            <small>Past Date</small>
           </div>
         </div>
       </div>
 
-      <!-- Tab 3: Vocational (e-Hailing, Bas Mini, GDL) -->
-      <div class="tab-pane fade" id="vocational" role="tabpanel" aria-labelledby="vocational-tab">
-        <div class="mx-auto" style="max-width: 900px;">
-          
-          <div class="info-box">
-            📌 <strong>Vocational Classes:</strong> e-Hailing, Bas Mini, and GDL (Goods Driving License). All classes have capacity of 50 students.
-          </div>
-          
-          <div id="vocationalContent">
-            <div class="loading">📊 Loading vocational class data...</div>
-          </div>
-        </div>
-
-        <div class="legend d-flex justify-content-center align-items-center gap-4 mt-4 flex-wrap">
-          <div class="d-flex align-items-center">
-            <div class="legend-box" style="background-color: #d4edda;"></div>
-            <small>Available (1-49 students)</small>
-          </div>
-          <div class="d-flex align-items-center">
-            <div class="legend-box" style="background-color: #f8d7da;"></div>
-            <small>Full (50/50)</small>
-          </div>
-          <div class="d-flex align-items-center">
-            <div class="legend-box" style="background-color: #e9ecef;"></div>
-            <small>Past Date</small>
+      <!-- Vocational Tab (All 3 Categories) -->
+      <div class="tab-pane fade" id="vocational-tab-content" role="tabpanel">
+        <div class="mt-4">
+          <div id="vocational-details" class="attendance-summary">
+            <h5>📚 Vocational Classes - All Categories</h5>
+            <hr>
+            <div class="loading">📊 Loading vocational data...</div>
           </div>
         </div>
       </div>
+
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  
+
   <script>
-    // ============================================
-    // TAB SCROLLING FUNCTIONALITY
-    // ============================================
-    function scrollActiveTabIntoView() {
-      const activeTab = document.querySelector('.nav-tabs-scrollable .nav-link.active');
-      const wrapper = document.querySelector('.tabs-wrapper');
-      if (activeTab && wrapper) {
-        const tabLeft = activeTab.offsetLeft;
-        const tabWidth = activeTab.offsetWidth;
-        const wrapperWidth = wrapper.offsetWidth;
-        const scrollPosition = tabLeft - (wrapperWidth / 2) + (tabWidth / 2);
-        wrapper.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-      }
-    }
-    
-    document.querySelectorAll('.nav-tabs-scrollable .nav-link').forEach(tab => {
-      tab.addEventListener('shown.bs.tab', () => {
-        setTimeout(scrollActiveTabIntoView, 100);
-      });
-    });
-    
-    setTimeout(scrollActiveTabIntoView, 500);
-
-    // ============================================
-    // LOCATION AVAILABILITY (TAB 1)
-    // ============================================
-    let currentDate = new Date();
-    let availabilityData = [];
-
-    async function loadAvailability() {
-      try {
-        const response = await fetch('availability.json?' + Date.now());
-        if (!response.ok) throw new Error('Availability data not found');
-        const data = await response.json();
-        availabilityData = data;
-        renderCalendar();
-      } catch (error) {
-        console.log('No availability data, using defaults');
-        renderCalendar();
-      }
-    }
-
-    function renderCalendar() {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth();
-      
-      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-                         'July', 'August', 'September', 'October', 'November', 'December'];
-      document.getElementById('currentMonth').innerText = `${monthNames[month]} ${year}`;
-      
-      const firstDay = new Date(year, month, 1);
-      const startDay = firstDay.getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      
-      let calendarHtml = '';
-      
-      const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      dayHeaders.forEach(day => {
-        calendarHtml += `<div class="text-center fw-bold small mb-2">${day}</div>`;
-      });
-      
-      for (let i = 0; i < startDay; i++) {
-        calendarHtml += `<div class="calendar-day other-month"></div>`;
-      }
-      
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-        const isAvailable = availabilityData[dateStr] === true;
-        
-        let dayClass = 'calendar-day';
-        if (isAvailable) {
-          dayClass += ' active-day';
-        } else if (availabilityData[dateStr] === false) {
-          dayClass += ' inactive-day';
-        }
-        
-        const isToday = new Date().toDateString() === new Date(year, month, day).toDateString();
-        if (isToday) dayClass += ' today';
-        
-        calendarHtml += `<div class="${dayClass}">${day}</div>`;
-      }
-      
-      document.getElementById('calendar').innerHTML = calendarHtml;
-    }
-
-    document.getElementById('prevMonth').addEventListener('click', () => {
-      currentDate.setMonth(currentDate.getMonth() - 1);
-      renderCalendar();
-    });
-    
-    document.getElementById('nextMonth').addEventListener('click', () => {
-      currentDate.setMonth(currentDate.getMonth() + 1);
-      renderCalendar();
-    });
-
-    // ============================================
-    // KPP01 ATTENDANCE (TAB 2)
-    // ============================================
-    let currentAttendanceDate = new Date();
-    let attendanceData = { kpp01: [] };
-
+    // Helper functions
     function parseDateDMY(dateStr) {
       if (!dateStr) return null;
       const parts = dateStr.split('/');
@@ -710,6 +517,11 @@
       return new Date(year, month, day);
     }
 
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      return dateStr;
+    }
+
     function isPastDate(year, month, day) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -718,29 +530,38 @@
       return checkDate < today;
     }
 
+    let attendanceData = null;
+
+    // Load attendance data once
     async function loadAttendanceData() {
-      const detailsDiv = document.getElementById('attendanceDetails');
-      detailsDiv.innerHTML = '<div class="loading">📊 Loading KPP01 attendance data...</div>';
-      
       try {
         const response = await fetch('attendance.json?' + Date.now());
         if (!response.ok) throw new Error('Failed to load attendance data');
-        const data = await response.json();
-        attendanceData = data;
-        updateAttendanceDisplay();
+        attendanceData = await response.json();
+        console.log('Loaded attendance data:', attendanceData);
+        
+        // Update all tabs
+        updateKpp01Display();
+        updateVocationalDisplay();
       } catch (error) {
         console.error('Error loading attendance:', error);
-        document.getElementById('attendanceDetails').innerHTML = '<div class="error">❌ Error loading attendance data</div>';
       }
     }
 
-    function updateAttendanceDisplay() {
-      const year = currentAttendanceDate.getFullYear();
-      const month = currentAttendanceDate.getMonth();
+    // ============================================
+    // KPP01 TAB FUNCTIONS
+    // ============================================
+    let currentKpp01Date = new Date();
+
+    function updateKpp01Display() {
+      if (!attendanceData) return;
+      
+      const year = currentKpp01Date.getFullYear();
+      const month = currentKpp01Date.getMonth();
       
       const monthNames = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 
                          'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
-      document.getElementById('attendanceMonth').innerHTML = `${monthNames[month]} ${year}`;
+      document.getElementById('kpp01MonthLabel').innerHTML = `${monthNames[month]} ${year}`;
       
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -751,7 +572,8 @@
         const dateObj = parseDateDMY(item.date);
         if (!dateObj) return false;
         return dateObj.getMonth() === month && 
-               dateObj.getFullYear() === year;
+               dateObj.getFullYear() === year && 
+               dateObj > today;
       });
       
       const classDates = new Map();
@@ -766,11 +588,11 @@
         }
       });
       
-      renderAttendanceCalendar(year, month, classDates);
-      renderAttendanceDetails(filteredData);
+      renderKpp01Calendar(year, month, classDates);
+      renderKpp01Details(filteredData);
     }
 
-    function renderAttendanceCalendar(year, month, classDates) {
+    function renderKpp01Calendar(year, month, classDates) {
       const firstDay = new Date(year, month, 1);
       const startDay = firstDay.getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -807,7 +629,7 @@
         if (isPast) {
           dayClass = 'past-date';
         } else if (hasClass) {
-          dayClass = isFull ? 'has-class' : 'has-class';
+          dayClass = 'has-class';
           additionalStyle = isFull ? 'style="background-color: #f8d7da; color: #dc3545;"' : '';
         }
         
@@ -819,24 +641,12 @@
         `;
       }
       
-      document.getElementById('attendanceCalendar').innerHTML = calendarHtml;
-      
-      document.querySelectorAll('#attendanceCalendar .has-class').forEach(el => {
-        const day = parseInt(el.getAttribute('data-day'));
-        if (!isPastDate(year, month, day)) {
-          el.addEventListener('click', () => {
-            const classesForDay = classDates.get(day);
-            if (classesForDay) {
-              showDayDetails(classesForDay);
-            }
-          });
-        }
-      });
+      document.getElementById('kpp01-calendar').innerHTML = calendarHtml;
     }
 
-    function renderAttendanceDetails(data) {
+    function renderKpp01Details(data) {
       if (!data || data.length === 0) {
-        document.getElementById('attendanceDetails').innerHTML = '<div class="no-data">📅 No upcoming KPP01 classes this month</div>';
+        document.getElementById('kpp01-details').innerHTML = '<div class="no-data">📅 No upcoming KPP01 classes this month</div>';
         return;
       }
       
@@ -855,17 +665,17 @@
         return dateA - dateB;
       });
       
-      let html = '<div class="attendance-summary"><h5>📋 Upcoming KPP01 Classes</h5><hr>';
+      let html = '<h5>🚗 Upcoming KPP01 Classes</h5><hr>';
       
       sortedDates.forEach(date => {
         const classes = groupedByDate[date];
         
         html += `<div class="date-group">
-                   <div class="date">📅 ${date}</div>`;
+                   <div class="date">📅 ${formatDate(date)}</div>`;
         
         classes.forEach(cls => {
           const present = parseInt(cls.present_count) || 0;
-          const total = parseInt(cls.total_students) || 50;
+          const total = parseInt(cls.total_students) || 0;
           const className = cls.class_name || 'Class';
           const classType = cls.class_type || '';
           const isFull = present === total && total > 0;
@@ -886,198 +696,202 @@
         html += `</div>`;
       });
       
-      html += '</div>';
-      document.getElementById('attendanceDetails').innerHTML = html;
+      document.getElementById('kpp01-details').innerHTML = html;
     }
 
-    function showDayDetails(classes) {
-      if (!classes || classes.length === 0) return;
-      
-      const date = classes[0].date;
-      let html = `
-        <div class="attendance-summary">
-          <h5>📅 KPP01 Class Details for ${date}</h5>
-          <hr>
-      `;
-      
-      classes.forEach(cls => {
-        const present = parseInt(cls.present_count) || 0;
-        const total = parseInt(cls.total_students) || 50;
-        const className = cls.class_name || 'Class';
-        const classType = cls.class_type || '';
-        const isFull = present === total && total > 0;
-        
-        const attendanceClass = isFull ? 'attendance-count full' : 'attendance-count';
-        
-        html += `<div class="class-item">
-                   <strong>${classType ? classType + ' ' : ''}${className}</strong><br>
-                   Booked: <span class="${attendanceClass}">${present}/${total}</span> students
-                   ${isFull ? '<br><span class="full-badge">🔴 CLASS IS FULL!</span>' : ''}
-                 </div>`;
-      });
-      
-      html += `<button class="btn btn-sm btn-outline-secondary mt-3" onclick="location.reload();">← Back to calendar</button>`;
-      html += `</div>`;
-      
-      document.getElementById('attendanceDetails').innerHTML = html;
-    }
+    // KPP01 Month navigation
+    document.getElementById('prevKpp01Month').addEventListener('click', () => {
+      currentKpp01Date.setMonth(currentKpp01Date.getMonth() - 1);
+      updateKpp01Display();
+    });
 
-    function changeAttendanceMonth(delta) {
-      currentAttendanceDate.setMonth(currentAttendanceDate.getMonth() + delta);
-      updateAttendanceDisplay();
-    }
+    document.getElementById('nextKpp01Month').addEventListener('click', () => {
+      currentKpp01Date.setMonth(currentKpp01Date.getMonth() + 1);
+      updateKpp01Display();
+    });
 
     // ============================================
-    // VOCATIONAL ATTENDANCE (TAB 3)
+    // VOCATIONAL TAB FUNCTIONS
     // ============================================
-    let vocationalData = {
-      e_hailing: [],
-      bas_mini: [],
-      gdl: []
-    };
-
-    async function loadVocationalData() {
-      const container = document.getElementById('vocationalContent');
-      container.innerHTML = '<div class="loading">📊 Loading vocational class data...</div>';
+    function updateVocationalDisplay() {
+      if (!attendanceData) return;
       
-      try {
-        const response = await fetch('attendance.json?' + Date.now());
-        if (!response.ok) throw new Error('Failed to load attendance data');
-        const data = await response.json();
-        
-        vocationalData = data.vocational || { e_hailing: [], bas_mini: [], gdl: [] };
-        renderVocationalTables();
-      } catch (error) {
-        console.error('Error loading vocational data:', error);
-        container.innerHTML = '<div class="error">❌ Error loading vocational class data</div>';
-      }
+      const vocational = attendanceData.vocational || {};
+      const eHailing = vocational.e_hailing || [];
+      const basMini = vocational.bas_mini || [];
+      const gdl = vocational.gdl || [];
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Filter future dates only
+      const filterFutureOnly = (data) => {
+        return data.filter(item => {
+          if (!item.date) return false;
+          const dateObj = parseDateDMY(item.date);
+          if (!dateObj) return false;
+          return dateObj > today;
+        });
+      };
+      
+      const eHailingFuture = filterFutureOnly(eHailing);
+      const basMini Future = filterFutureOnly(basMini);
+      const gdlFuture = filterFutureOnly(gdl);
+      
+      renderVocationalDetails(eHailingFuture, basMini Future, gdlFuture);
     }
 
-    function renderVocationalTables() {
-      const container = document.getElementById('vocationalContent');
-      
-      // Check if any data exists
-      const hasData = (vocationalData.e_hailing && vocationalData.e_hailing.length > 0) ||
-                      (vocationalData.bas_mini && vocationalData.bas_mini.length > 0) ||
-                      (vocationalData.gdl && vocationalData.gdl.length > 0);
-      
-      if (!hasData) {
-        container.innerHTML = '<div class="empty-state">📭 No upcoming vocational classes found</div>';
-        return;
-      }
-      
-      let html = '';
-      
-      // e-Hailing Table
-      html += renderVocationalTable('e-Hailing', vocationalData.e_hailing || [], 'e-hailing');
-      
-      // Bas Mini Table
-      html += renderVocationalTable('Bas Mini', vocationalData.bas_mini || [], 'bas-mini');
-      
-      // GDL Table
-      html += renderVocationalTable('GDL (Goods Driving License)', vocationalData.gdl || [], 'gdl');
-      
-      container.innerHTML = html;
-    }
-
-    function renderVocationalTable(title, records, categoryClass) {
-      if (!records || records.length === 0) {
-        return `
-          <div class="vocational-card">
-            <div class="vocational-header ${categoryClass}">
-              🚗 ${title}
-            </div>
-            <div class="empty-state" style="padding: 20px;">
-              No upcoming classes
-            </div>
-          </div>
-        `;
-      }
-      
-      // Sort records by date
-      const sortedRecords = [...records].sort((a, b) => {
+    function sortByDate(data) {
+      return data.sort((a, b) => {
         const dateA = parseDateDMY(a.date);
         const dateB = parseDateDMY(b.date);
         return dateA - dateB;
       });
+    }
+
+    function renderVocationalDetails(eHailing, basMini, gdl) {
+      let html = '<h5>📚 Vocational Classes - All Categories</h5><hr>';
       
-      let tableHtml = `
-        <div class="vocational-card">
-          <div class="vocational-header ${categoryClass}">
-            ${getCategoryIcon(categoryClass)} ${title}
-          </div>
-          <div class="table-responsive">
-            <table class="vocational-table table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Class Type</th>
-                  <th>Class Name</th>
-                  <th>Booked</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-      `;
+      // E-Hailing Section
+      html += `<div class="vocational-category">
+                 <h4>🚕 E-HAILING</h4>`;
       
-      sortedRecords.forEach(record => {
-        const present = parseInt(record.present_count) || 0;
-        const total = parseInt(record.total_students) || 50;
-        const isFull = present === total;
-        const statusClass = isFull ? 'status-full' : 'status-available';
-        const statusText = isFull ? '🔴 FULL' : '✅ Available';
+      if (eHailing && eHailing.length > 0) {
+        const sortedEHailing = sortByDate(eHailing);
+        html += `<table class="vocational-table">
+                   <thead>
+                     <tr>
+                       <th>📅 Date</th>
+                       <th>📍 Class Type</th>
+                       <th>👥 Attendance</th>
+                     </tr>
+                   </thead>
+                   <tbody>`;
         
-        tableHtml += `
-          <tr>
-            <td><strong>${record.date}</strong></td>
-            <td>${record.class_type || '-'}</td>
-            <td>${record.class_name || '-'}</td>
-            <td>${present}/${total}</td>
-            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
-          </tr>
-        `;
-      });
-      
-      tableHtml += `
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-      
-      return tableHtml;
-    }
-
-    function getCategoryIcon(category) {
-      switch(category) {
-        case 'e-hailing': return '🚕';
-        case 'bas-mini': return '🚌';
-        case 'gdl': return '🚚';
-        default: return '📋';
+        sortedEHailing.forEach(cls => {
+          const present = parseInt(cls.present_count) || 0;
+          const total = parseInt(cls.total_students) || 0;
+          const isFull = present === total && total > 0;
+          const statusClass = isFull ? 'full' : 'available';
+          const statusLabel = isFull ? '🔴 FULL' : '✅ Available';
+          
+          html += `<tr>
+                     <td><strong>${cls.date}</strong></td>
+                     <td>${cls.class_name}</td>
+                     <td>
+                       <span class="attendance-status ${statusClass}">
+                         ${present}/${total} ${statusLabel}
+                       </span>
+                     </td>
+                   </tr>`;
+        });
+        
+        html += `</tbody></table>`;
+      } else {
+        html += `<p class="text-muted">📭 No upcoming e-Hailing classes</p>`;
       }
+      
+      html += `</div>`;
+      
+      // Bas Mini Section
+      html += `<div class="vocational-category">
+                 <h4>🚌 BAS MINI</h4>`;
+      
+      if (basMini && basMini.length > 0) {
+        const sortedBasMini = sortByDate(basMini);
+        html += `<table class="vocational-table">
+                   <thead>
+                     <tr>
+                       <th>📅 Date</th>
+                       <th>📍 Class Type</th>
+                       <th>👥 Attendance</th>
+                     </tr>
+                   </thead>
+                   <tbody>`;
+        
+        sortedBasMini.forEach(cls => {
+          const present = parseInt(cls.present_count) || 0;
+          const total = parseInt(cls.total_students) || 0;
+          const isFull = present === total && total > 0;
+          const statusClass = isFull ? 'full' : 'available';
+          const statusLabel = isFull ? '🔴 FULL' : '✅ Available';
+          
+          html += `<tr>
+                     <td><strong>${cls.date}</strong></td>
+                     <td>${cls.class_name}</td>
+                     <td>
+                       <span class="attendance-status ${statusClass}">
+                         ${present}/${total} ${statusLabel}
+                       </span>
+                     </td>
+                   </tr>`;
+        });
+        
+        html += `</tbody></table>`;
+      } else {
+        html += `<p class="text-muted">📭 No upcoming Bas Mini classes</p>`;
+      }
+      
+      html += `</div>`;
+      
+      // GDL Section
+      html += `<div class="vocational-category">
+                 <h4>🚚 GDL</h4>`;
+      
+      if (gdl && gdl.length > 0) {
+        const sortedGdl = sortByDate(gdl);
+        html += `<table class="vocational-table">
+                   <thead>
+                     <tr>
+                       <th>📅 Date</th>
+                       <th>📍 Class Type</th>
+                       <th>👥 Attendance</th>
+                     </tr>
+                   </thead>
+                   <tbody>`;
+        
+        sortedGdl.forEach(cls => {
+          const present = parseInt(cls.present_count) || 0;
+          const total = parseInt(cls.total_students) || 0;
+          const isFull = present === total && total > 0;
+          const statusClass = isFull ? 'full' : 'available';
+          const statusLabel = isFull ? '🔴 FULL' : '✅ Available';
+          
+          html += `<tr>
+                     <td><strong>${cls.date}</strong></td>
+                     <td>${cls.class_name}</td>
+                     <td>
+                       <span class="attendance-status ${statusClass}">
+                         ${present}/${total} ${statusLabel}
+                       </span>
+                     </td>
+                   </tr>`;
+        });
+        
+        html += `</tbody></table>`;
+      } else {
+        html += `<p class="text-muted">📭 No upcoming GDL classes</p>`;
+      }
+      
+      html += `</div>`;
+      
+      document.getElementById('vocational-details').innerHTML = html;
     }
 
-    // ============================================
-    // EVENT LISTENERS
-    // ============================================
-    document.getElementById('prevAttendanceMonth').addEventListener('click', () => changeAttendanceMonth(-1));
-    document.getElementById('nextAttendanceMonth').addEventListener('click', () => changeAttendanceMonth(1));
-    
-    document.getElementById('attendance-tab').addEventListener('shown.bs.tab', () => {
-      loadAttendanceData();
-    });
-    
-    document.getElementById('vocational-tab').addEventListener('shown.bs.tab', () => {
-      loadVocationalData();
-    });
-    
-    // Initialize all
-    loadAvailability();
-    
+    // Load data when page loads
     setTimeout(() => {
       loadAttendanceData();
-      loadVocationalData();
     }, 500);
+
+    // Reload when vocational tab is shown
+    document.getElementById('vocational-tab').addEventListener('shown.bs.tab', () => {
+      loadAttendanceData();
+    });
+
+    // Reload when KPP01 tab is shown
+    document.getElementById('kpp01-tab').addEventListener('shown.bs.tab', () => {
+      loadAttendanceData();
+    });
   </script>
 </body>
 </html>
