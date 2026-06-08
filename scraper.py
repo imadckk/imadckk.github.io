@@ -5,7 +5,6 @@ import re
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
@@ -17,18 +16,16 @@ USERNAME = os.environ.get('COMPANY_USERNAME')
 PASSWORD = os.environ.get('COMPANY_PASSWORD')
 BASE_URL = "http://adcdriving.dyndns.biz"
 
-# Class capacity mapping (you can adjust these values)
-# Format: "class_name_keyword": capacity
+# Class capacity mapping - ALL set to 50 as requested
 CLASS_CAPACITY = {
-    "KPP01": 50,
-    "KPP02": 50,
-    "KPP03": 50,
-    "KPP04": 50,
-    "default": 50  # Default capacity if not found
+    "kpp01": 50,
+    "e_hailing": 50,
+    "bas_mini": 50,
+    "gdl": 50
 }
 
 def setup_driver():
-    """Setup Chrome driver with automatic version management"""
+    """Setup Chrome driver for headless operation"""
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
@@ -42,243 +39,327 @@ def setup_driver():
     return driver
 
 def login_with_selenium(driver):
-    """Login using Selenium"""
-    print("🔐 Attempting login with Selenium...")
+    """Login to the system - session persists for all subsequent requests"""
+    print("🔐 Attempting login...")
     
     try:
         driver.get(f"{BASE_URL}/star/User/Login")
         print(f"   Page loaded: {driver.title}")
         time.sleep(3)
         
+        # Enter username
         username_field = driver.find_element(By.ID, "UserName")
         username_field.clear()
         username_field.send_keys(USERNAME)
         print("   ✅ Username entered")
         
+        # Enter password
         password_field = driver.find_element(By.ID, "Password")
         password_field.clear()
         password_field.send_keys(PASSWORD)
         print("   ✅ Password entered")
         
+        # Click login button
         login_button = driver.find_element(By.ID, "btnLogin")
         login_button.click()
         print("   ✅ Clicked login button")
         
         time.sleep(5)
         
+        # Verify login success
         current_url = driver.current_url
-        print(f"   Current URL: {current_url}")
-        
         if "login" not in current_url.lower():
             print("✅ Login successful!")
             return True
         else:
-            print("❌ Login failed")
+            print("❌ Login failed - still on login page")
             return False
             
     except Exception as e:
         print(f"❌ Login error: {e}")
         return False
 
-def get_class_capacity(class_name, class_type):
-    """Determine class capacity based on class name/type"""
-    # Combine class_name and class_type for matching
-    full_name = f"{class_type} {class_name}".upper()
-    
-    # Look for capacity in mapping
-    for key, capacity in CLASS_CAPACITY.items():
-        if key.upper() in full_name:
-            return capacity
-    
-    # Try to extract number from class name (e.g., "CLASS 1" might have capacity 50)
-    numbers = re.findall(r'\d+', class_name)
-    if numbers:
-        # If class name has a number, use default capacity
-        return CLASS_CAPACITY["default"]
-    
-    return CLASS_CAPACITY["default"]
-
-def get_attendance_for_date(driver, search_date):
-    """Fetch attendance for a specific date"""
+def is_future_date(date_str):
+    """Check if a date is in the future (not today or past)"""
     try:
-        formatted_date_input = search_date.strftime("%d/%m/%Y")
-        print(f"  🔍 Checking {formatted_date_input}...", end=" ", flush=True)
+        # Parse date from DD/MM/YYYY format
+        date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        # Only include dates strictly in the future (not today)
+        return date_obj > today
+    except Exception as e:
+        print(f"   ⚠️ Date parsing error for {date_str}: {e}")
+        return False
+
+def parse_table_row(cells, category_type):
+    """Extract data from a table row and return standardized record"""
+    try:
+        if len(cells) < 5:
+            return None
         
+        # Extract data from appropriate columns
+        # Based on your HTML structure:
+        # col0: class_id, col1: class_name, col2: date, col3: class_type, col4: present_count
+        class_id = cells[0].get_text(strip=True)
+        class_name = cells[1].get_text(strip=True)
+        date_str = cells[2].get_text(strip=True)
+        class_type = cells[3].get_text(strip=True)
+        present_count = cells[4].get_text(strip=True)
+        
+        # Validate data
+        if not class_id or not class_id.isdigit():
+            return None
+        
+        if not date_str or not is_future_date(date_str):
+            return None  # Skip past or invalid dates
+        
+        # Convert present count to integer
+        try:
+            present_num = int(present_count) if present_count.isdigit() else 0
+        except:
+            present_num = 0
+        
+        # Get capacity for this category
+        total_capacity = CLASS_CAPACITY.get(category_type, 50)
+        
+        return {
+            'date': date_str,
+            'class_id': class_id,
+            'class_name': class_name,
+            'class_type': class_type,
+            'present_count': str(present_num),
+            'total_students': str(total_capacity)
+        }
+    except Exception as e:
+        print(f"   ⚠️ Error parsing row: {e}")
+        return None
+
+def scrape_kpp01(driver):
+    """Scrape KPP01 (regular driving license) attendance"""
+    print("\n📚 Scraping KPP01 data...")
+    print("=" * 50)
+    
+    records = []
+    
+    try:
+        # Navigate to KPP01 attendance page
         driver.get(f"{BASE_URL}/star/AttendanceRecord/Kpp")
-        time.sleep(2)
-        
-        try:
-            date_field = driver.find_element(By.ID, "lessonDate")
-            date_field.clear()
-            date_field.send_keys(formatted_date_input)
-        except:
-            print("date error", end=" ")
-            return []
-        
-        try:
-            search_button = driver.find_element(By.ID, "mySearchButton")
-            search_button.click()
-        except:
-            try:
-                search_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
-                search_button.click()
-            except:
-                print("no button", end=" ")
-                return []
-        
         time.sleep(3)
         
+        # Parse the page
         soup = BeautifulSoup(driver.page_source, 'html.parser')
         
-        records = []
+        # Find all tables (the main data table)
         tables = soup.find_all('table')
         
         for table in tables:
             rows = table.find_all('tr')
             for row in rows:
+                # Skip header rows
                 if row.find('th'):
                     continue
                 
                 cells = row.find_all('td')
                 if len(cells) >= 5:
-                    student_id = cells[0].get_text(strip=True)
-                    class_name = cells[1].get_text(strip=True)
-                    date_str = cells[2].get_text(strip=True)
-                    class_type = cells[3].get_text(strip=True)
-                    present = cells[4].get_text(strip=True) if len(cells) > 4 else "0"
-                    
-                    if student_id and student_id.isdigit():
-                        present_num = int(present) if present.isdigit() else 0
-                        
-                        # Get class capacity
-                        total_capacity = get_class_capacity(class_name, class_type)
-                        
-                        records.append({
-                            'date': date_str,
-                            'class_id': student_id,
-                            'class_name': class_name,
-                            'class_type': class_type,
-                            'present_count': str(present_num),
-                            'total_students': str(total_capacity)
-                        })
+                    record = parse_table_row(cells, 'kpp01')
+                    if record:
+                        records.append(record)
         
-        if records:
-            print(f"✅ Found {len(records)} class(es)")
-        else:
-            print(f"📭 No classes")
-        
+        print(f"✅ Found {len(records)} future KPP01 classes")
         return records
         
     except Exception as e:
-        print(f"❌ Error")
+        print(f"❌ Error scraping KPP01: {e}")
         return []
 
-def get_month_attendance(driver):
-    """Fetch attendance for current month"""
-    now = datetime.now()
-    print(f"\n📅 Fetching attendance for {now.strftime('%B %Y')}")
+def scrape_psv2(driver):
+    """Scrape PSV2 page (contains both e-Hailing and Bas Mini)"""
+    print("\n🚐 Scraping Vocational data (e-Hailing & Bas Mini)...")
     print("=" * 50)
     
-    if now.month == 12:
-        next_month = datetime(now.year + 1, 1, 1)
-    else:
-        next_month = datetime(now.year, now.month + 1, 1)
-    num_days = (next_month - datetime(now.year, now.month, 1)).days
+    e_hailing_records = []
+    bas_mini_records = []
     
-    all_records = []
-    
-    for day in range(1, num_days + 1):
-        current_date = datetime(now.year, now.month, day)
-        records = get_attendance_for_date(driver, current_date)
-        all_records.extend(records)
-        time.sleep(1)
-    
-    return all_records
+    try:
+        # Navigate to PSV2 attendance page
+        driver.get(f"{BASE_URL}/star/AttendanceRecord/Psv2")
+        time.sleep(3)
+        
+        # Parse the page
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        
+        # Find all tables
+        tables = soup.find_all('table')
+        
+        for table in tables:
+            rows = table.find_all('tr')
+            for row in rows:
+                # Skip header rows
+                if row.find('th'):
+                    continue
+                
+                cells = row.find_all('td')
+                if len(cells) >= 5:
+                    # Get class_type to determine category
+                    class_type = cells[3].get_text(strip=True).lower()
+                    
+                    # Determine which category this belongs to
+                    if 'e-hailing' in class_type:
+                        record = parse_table_row(cells, 'e_hailing')
+                        if record:
+                            e_hailing_records.append(record)
+                    elif 'psv' in class_type or 'bas' in class_type:
+                        record = parse_table_row(cells, 'bas_mini')
+                        if record:
+                            bas_mini_records.append(record)
+        
+        print(f"✅ Found {len(e_hailing_records)} future e-Hailing classes")
+        print(f"✅ Found {len(bas_mini_records)} future Bas Mini classes")
+        return e_hailing_records, bas_mini_records
+        
+    except Exception as e:
+        print(f"❌ Error scraping PSV2: {e}")
+        return [], []
 
-def save_data(attendance_records):
-    """Save to JSON file"""
-    simplified_data = []
+def scrape_gdl2(driver):
+    """Scrape GDL (Goods Driving License) attendance"""
+    print("\n🚚 Scraping GDL data...")
+    print("=" * 50)
     
-    for record in attendance_records:
-        simplified_record = {
-            'date': record['date'],
-            'class_name': record['class_name'],
-            'class_type': record['class_type'],
-            'present_count': record['present_count'],
-            'total_students': record['total_students']
-        }
-        simplified_data.append(simplified_record)
+    records = []
     
-    def parse_date(date_str):
-        try:
-            return datetime.strptime(date_str, '%d/%m/%Y')
-        except:
+    try:
+        # Navigate to GDL2 attendance page
+        driver.get(f"{BASE_URL}/star/AttendanceRecord/Gdl2")
+        time.sleep(3)
+        
+        # Parse the page
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        
+        # Find all tables
+        tables = soup.find_all('table')
+        
+        for table in tables:
+            rows = table.find_all('tr')
+            for row in rows:
+                # Skip header rows
+                if row.find('th'):
+                    continue
+                
+                cells = row.find_all('td')
+                if len(cells) >= 5:
+                    record = parse_table_row(cells, 'gdl')
+                    if record:
+                        records.append(record)
+        
+        print(f"✅ Found {len(records)} future GDL classes")
+        return records
+        
+    except Exception as e:
+        print(f"❌ Error scraping GDL2: {e}")
+        return []
+
+def save_data(kpp01_data, e_hailing_data, bas_mini_data, gdl_data):
+    """Save all data to attendance.json in the new structure"""
+    
+    # Sort records by date for each category
+    def sort_by_date(records):
+        def parse_date(record):
             try:
-                return datetime.strptime(date_str, '%m/%d/%Y')
+                return datetime.strptime(record['date'], '%d/%m/%Y')
             except:
                 return datetime.min
+        return sorted(records, key=parse_date)
     
-    if simplified_data:
-        simplified_data.sort(key=lambda x: parse_date(x['date']))
-    
+    # Organize data into the new structure
     output = {
         'last_updated': datetime.now().isoformat(),
-        'attendance_summary': simplified_data
+        'kpp01': sort_by_date(kpp01_data),
+        'vocational': {
+            'e_hailing': sort_by_date(e_hailing_data),
+            'bas_mini': sort_by_date(bas_mini_data),
+            'gdl': sort_by_date(gdl_data)
+        }
     }
     
-    with open('attendance.json', 'w') as f:
-        json.dump(output, f, indent=2)
+    # Save to file
+    with open('attendance.json', 'w', encoding='utf-8') as f:
+        json.dump(output, f, indent=2, ensure_ascii=False)
     
-    print(f"\n💾 Saved {len(simplified_data)} class records to attendance.json")
+    # Print summary
+    print("\n" + "=" * 50)
+    print("📊 FINAL SUMMARY")
+    print("=" * 50)
+    print(f"KPP01:        {len(kpp01_data)} future classes")
+    print(f"e-Hailing:    {len(e_hailing_data)} future classes")
+    print(f"Bas Mini:     {len(bas_mini_data)} future classes")
+    print(f"GDL:          {len(gdl_data)} future classes")
+    print(f"\n💾 Saved to attendance.json")
     
-    if simplified_data:
-        print("\n📊 ATTENDANCE SUMMARY:")
+    # Print detailed breakdown by date
+    if any([kpp01_data, e_hailing_data, bas_mini_data, gdl_data]):
+        print("\n📅 UPCOMING CLASSES BY DATE:")
         print("=" * 50)
+        
+        all_classes = []
+        for record in kpp01_data:
+            all_classes.append(('KPP01', record))
+        for record in e_hailing_data:
+            all_classes.append(('e-Hailing', record))
+        for record in bas_mini_data:
+            all_classes.append(('Bas Mini', record))
+        for record in gdl_data:
+            all_classes.append(('GDL', record))
+        
+        # Sort by date
+        all_classes.sort(key=lambda x: datetime.strptime(x[1]['date'], '%d/%m/%Y'))
+        
         current_date = None
-        for record in simplified_data:
+        for category, record in all_classes:
             if record['date'] != current_date:
                 current_date = record['date']
                 print(f"\n📅 {record['date']}")
-            print(f"   {record['class_type']} {record['class_name']} ({record['present_count']}/{record['total_students']})")
+            print(f"   {category:12} - {record['class_type']:20} ({record['present_count']}/{record['total_students']})")
 
 def main():
-    print("🚀 Driving School Attendance Scraper (Selenium Version)")
+    """Main execution function"""
+    print("🚀 Driving School Attendance Scraper v2.0")
     print("=" * 50)
     print(f"Username configured: {'Yes' if USERNAME else 'No'}")
     print(f"Password configured: {'Yes' if PASSWORD else 'No'}")
     print()
     
+    # Check credentials
     if not USERNAME or not PASSWORD:
-        print("❌ Missing credentials!")
+        print("❌ Missing credentials! Please set COMPANY_USERNAME and COMPANY_PASSWORD in GitHub Secrets.")
         exit(1)
     
     driver = None
     try:
+        # Setup browser
         print("📱 Setting up browser...")
         driver = setup_driver()
         print("✅ Browser ready")
         
-        if login_with_selenium(driver):
-            print("\n✅ Ready to fetch attendance data")
-            attendance_data = get_month_attendance(driver)
-            
-            if attendance_data:
-                save_data(attendance_data)
-                print(f"\n✅ Successfully processed {len(attendance_data)} class records")
-            else:
-                print("\n⚠️ No attendance records found")
-                output = {
-                    'last_updated': datetime.now().isoformat(),
-                    'attendance_summary': []
-                }
-                with open('attendance.json', 'w') as f:
-                    json.dump(output, f, indent=2)
-        else:
-            print("❌ Login failed")
+        # Login once (session persists for all scraping)
+        if not login_with_selenium(driver):
+            print("❌ Login failed. Cannot proceed.")
             exit(1)
-            
+        
+        # Scrape all categories
+        print("\n✅ Login successful! Starting data collection...")
+        
+        kpp01_data = scrape_kpp01(driver)
+        e_hailing_data, bas_mini_data = scrape_psv2(driver)
+        gdl_data = scrape_gdl2(driver)
+        
+        # Save combined data
+        save_data(kpp01_data, e_hailing_data, bas_mini_data, gdl_data)
+        
+        print("\n✅ All data collected and saved successfully!")
+        
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"\n❌ Critical error: {e}")
         import traceback
         traceback.print_exc()
         exit(1)
