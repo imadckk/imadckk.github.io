@@ -161,16 +161,27 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
         print(f"❌ Error: {e}")
         return []
 
-def get_month_attendance_for_url(driver, url_path):
-    """Fetch attendance for upcoming days (next 60 days) for a specific URL"""
+def get_remaining_days_in_month(driver, url_path):
+    """Fetch attendance for remaining days in current month only"""
     now = datetime.now()
-    print(f"\n📅 Checking next 60 days from {now.strftime('%d/%m/%Y')}")
+    
+    # Calculate last day of current month
+    if now.month == 12:
+        next_month = datetime(now.year + 1, 1, 1)
+    else:
+        next_month = datetime(now.year, now.month + 1, 1)
+    last_day = next_month - timedelta(days=1)
+    
+    days_remaining = (last_day - now).days + 1  # +1 to include today
+    
+    print(f"\n📅 Checking from today ({now.strftime('%d/%m/%Y')}) until end of month ({last_day.strftime('%d/%m/%Y')})")
+    print(f"   Total days to check: {days_remaining}")
     
     all_records = []
     
-    # Check from today up to 60 days in the future
-    for days_ahead in range(60):
-        current_date = now + timedelta(days=days_ahead)
+    # Check from today until the end of the month
+    for day_offset in range(days_remaining):
+        current_date = now + timedelta(days=day_offset)
         records = get_vocational_attendance_for_date(driver, current_date, url_path)
         all_records.extend(records)
         time.sleep(1)  # Be nice to the server
@@ -191,9 +202,6 @@ def categorize_vocational_records(records):
         class_name_upper = record['class_name'].upper()
         class_code_upper = record['class_code'].upper()
         
-        # Debug print
-        print(f"  📝 Processing: {record['date']} - {record['class_name']} (Code: {record['class_code']})")
-        
         # Determine category based on class name
         # e-Hailing detection
         if "E-HAILING" in class_name_upper or "E HAILING" in class_name_upper:
@@ -211,19 +219,15 @@ def categorize_vocational_records(records):
             elif "GDL" in class_code_upper:
                 category = 'GDL'
             else:
-                print(f"  ⚠️ Unknown category - Class: {record['class_name']}, Code: {record['class_code']}")
+                # Skip unknown categories
                 continue
         
-        # Filter to only future dates
+        # Filter to only future dates (including today)
         try:
             date_obj = datetime.strptime(record['date'], '%d/%m/%Y')
             if date_obj >= today:
                 categorized[category].append(record)
-                print(f"     ✅ Added to {category}")
-            else:
-                print(f"     ⏭️ Skipped (past date)")
         except Exception as e:
-            print(f"  ⚠️ Date parsing error for {record.get('date', 'unknown')}: {e}")
             continue
     
     return categorized
@@ -290,7 +294,7 @@ def main():
             print("\n" + "="*50)
             print("📌 SCRAPING PSV II (e-Hailing & Bas Mini)")
             print("="*50)
-            psv_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Psv2")
+            psv_records = get_remaining_days_in_month(driver, "/star/AttendanceRecord/Psv2")
             print(f"\n   Total records from PSV II: {len(psv_records)}")
             all_records.extend(psv_records)
             
@@ -298,7 +302,7 @@ def main():
             print("\n" + "="*50)
             print("📌 SCRAPING GDL II (GDL)")
             print("="*50)
-            gdl_records = get_month_attendance_for_url(driver, "/star/AttendanceRecord/Gdl2")
+            gdl_records = get_remaining_days_in_month(driver, "/star/AttendanceRecord/Gdl2")
             print(f"\n   Total records from GDL II: {len(gdl_records)}")
             all_records.extend(gdl_records)
             
