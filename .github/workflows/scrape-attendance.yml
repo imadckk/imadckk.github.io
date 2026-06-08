@@ -37,17 +37,23 @@ jobs:
           pip install beautifulsoup4
           pip install webdriver-manager
       
-      - name: Run attendance scraper
+      - name: Run KPP01 attendance scraper
         env:
           COMPANY_USERNAME: ${{ secrets.COMPANY_USERNAME }}
           COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
         run: python scraper.py
+      
+      - name: Run Vocational attendance scraper
+        env:
+          COMPANY_USERNAME: ${{ secrets.COMPANY_USERNAME }}
+          COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
+        run: python scraper_vocational.py
       
       - name: Commit and push changes
         if: success()
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add attendance.json
+          git add attendance.json vocational.json
           git diff --staged --quiet || git commit -m "Auto-update attendance data [skip ci]"
           git push
