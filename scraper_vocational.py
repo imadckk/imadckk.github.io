@@ -20,6 +20,47 @@ BASE_URL = "http://adcdriving.dyndns.biz"
 # Class capacity for vocational (all 50)
 VOCATIONAL_CAPACITY = 50
 
+# Configuration
+MONTHS_AHEAD = 1  # Check current month + 1 month ahead
+WEEKDAYS_ONLY = True  # Only check Monday-Friday (vocational classes on weekdays)
+
+def is_weekday(date):
+    """Check if date is Monday-Friday (0-4, where Monday=0, Sunday=6)"""
+    return date.weekday() < 5  # 0-4 are weekdays
+
+def get_dates_to_check():
+    """
+    Get all weekdays from today through X months ahead
+    Returns list of dates to check
+    """
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Calculate end date (first day of month X months ahead, minus 1 day)
+    end_date = today
+    for _ in range(MONTHS_AHEAD):
+        # Move to next month
+        if end_date.month == 12:
+            end_date = end_date.replace(year=end_date.year + 1, month=1)
+        else:
+            end_date = end_date.replace(month=end_date.month + 1)
+    
+    # Go to the last day of that month
+    if end_date.month == 12:
+        end_date = datetime(end_date.year, 12, 31)
+    else:
+        end_date = datetime(end_date.year, end_date.month + 1, 1) - timedelta(days=1)
+    
+    # Generate all weekdays to check
+    dates_to_check = []
+    current_date = today
+    
+    while current_date <= end_date:
+        if WEEKDAYS_ONLY and is_weekday(current_date):
+            dates_to_check.append(current_date)
+        current_date += timedelta(days=1)
+    
+    return dates_to_check, today, end_date
+
 def setup_driver():
     """Setup Chrome driver with automatic version management"""
     options = webdriver.ChromeOptions()
@@ -77,7 +118,8 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
     """Fetch vocational attendance for a specific date"""
     try:
         formatted_date_input = search_date.strftime("%d/%m/%Y")
-        print(f"  🔍 Checking {formatted_date_input}...", end=" ", flush=True)
+        day_name = search_date.strftime("%A")
+        print(f"  🔍 Checking {formatted_date_input} ({day_name})...", end=" ", flush=True)
         
         # Navigate to the page
         driver.get(f"{BASE_URL}{url_path}")
@@ -161,31 +203,23 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
         print(f"❌ Error: {e}")
         return []
 
-def get_remaining_days_in_month(driver, url_path):
-    """Fetch attendance for remaining days in current month only"""
-    now = datetime.now()
+def get_vocational_attendance_for_range(driver, url_path, page_name):
+    """Fetch vocational attendance for all configured dates (weekdays only, 1 month ahead)"""
+    dates_to_check, start_date, end_date = get_dates_to_check()
     
-    # Calculate last day of current month
-    if now.month == 12:
-        next_month = datetime(now.year + 1, 1, 1)
-    else:
-        next_month = datetime(now.year, now.month + 1, 1)
-    last_day = next_month - timedelta(days=1)
-    
-    days_remaining = (last_day - now).days + 1  # +1 to include today
-    
-    print(f"\n📅 Checking from today ({now.strftime('%d/%m/%Y')}) until end of month ({last_day.strftime('%d/%m/%Y')})")
-    print(f"   Total days to check: {days_remaining}")
+    print(f"\n📅 {page_name}")
+    print(f"   Checking from {start_date.strftime('%d/%m/%Y')} to {end_date.strftime('%d/%m/%Y')}")
+    print(f"   Total weekdays to check: {len(dates_to_check)}")
+    print("-" * 50)
     
     all_records = []
     
-    # Check from today until the end of the month
-    for day_offset in range(days_remaining):
-        current_date = now + timedelta(days=day_offset)
-        records = get_vocational_attendance_for_date(driver, current_date, url_path)
+    for date in dates_to_check:
+        records = get_vocational_attendance_for_date(driver, date, url_path)
         all_records.extend(records)
         time.sleep(1)  # Be nice to the server
     
+    print(f"\n   Total records found: {len(all_records)}")
     return all_records
 
 def categorize_vocational_records(records):
@@ -240,6 +274,11 @@ def save_vocational_data(categorized_data):
     
     output = {
         'last_updated': datetime.now().isoformat(),
+        'date_range_checked': {
+            'from': datetime.now().strftime('%d/%m/%Y'),
+            'months_ahead': MONTHS_AHEAD,
+            'weekdays_only': WEEKDAYS_ONLY
+        },
         'vocational_summary': categorized_data
     }
     
@@ -249,8 +288,8 @@ def save_vocational_data(categorized_data):
     print(f"\n💾 Saved vocational data to vocational.json")
     
     # Print summary
-    print("\n📊 VOCATIONAL SUMMARY:")
-    print("=" * 50)
+    print("\n📊 VOCATIONAL SUMMARY (Weekdays Only, 1 Month Ahead):")
+    print("=" * 60)
     total = 0
     for category in ['e-Hailing', 'Bas Mini', 'GDL']:
         count = len(categorized_data[category])
@@ -260,19 +299,28 @@ def save_vocational_data(categorized_data):
             for record in categorized_data[category]:
                 present = int(record['present_count'])
                 total_cap = int(record['total_students'])
+                # Parse date to show day name
+                try:
+                    date_obj = datetime.strptime(record['date'], '%d/%m/%Y')
+                    day_name = date_obj.strftime('%A')
+                    date_display = f"{record['date']} ({day_name})"
+                except:
+                    date_display = record['date']
+                
                 status = f"{present}/{total_cap}"
                 if present == total_cap and total_cap > 0:
                     status += " 🔴 FULL"
-                print(f"   📅 {record['date']} - {record['class_name']}: {status}")
+                print(f"   📅 {date_display} - {record['class_name']}: {status}")
     
     if total == 0:
-        print("\n📭 No upcoming vocational classes found")
+        print("\n📭 No upcoming vocational classes found in the next month")
 
 def main():
-    print("🚀 Vocational Attendance Scraper (Selenium Version)")
-    print("=" * 50)
+    print("🚀 Vocational Attendance Scraper (Weekdays Only + 1 Month Ahead)")
+    print("=" * 60)
     print(f"Username configured: {'Yes' if USERNAME else 'No'}")
     print(f"Password configured: {'Yes' if PASSWORD else 'No'}")
+    print(f"Configuration: {MONTHS_AHEAD} month(s) ahead, Weekdays only")
     print()
     
     if not USERNAME or not PASSWORD:
@@ -291,19 +339,17 @@ def main():
             print("\n✅ Ready to fetch vocational attendance data")
             
             # Scrape PSV II (e-Hailing and Bas Mini classes)
-            print("\n" + "="*50)
+            print("\n" + "="*60)
             print("📌 SCRAPING PSV II (e-Hailing & Bas Mini)")
-            print("="*50)
-            psv_records = get_remaining_days_in_month(driver, "/star/AttendanceRecord/Psv2")
-            print(f"\n   Total records from PSV II: {len(psv_records)}")
+            print("="*60)
+            psv_records = get_vocational_attendance_for_range(driver, "/star/AttendanceRecord/Psv2", "PSV II")
             all_records.extend(psv_records)
             
             # Scrape GDL II (GDL classes)
-            print("\n" + "="*50)
+            print("\n" + "="*60)
             print("📌 SCRAPING GDL II (GDL)")
-            print("="*50)
-            gdl_records = get_remaining_days_in_month(driver, "/star/AttendanceRecord/Gdl2")
-            print(f"\n   Total records from GDL II: {len(gdl_records)}")
+            print("="*60)
+            gdl_records = get_vocational_attendance_for_range(driver, "/star/AttendanceRecord/Gdl2", "GDL II")
             all_records.extend(gdl_records)
             
             print(f"\n📊 Total records found: {len(all_records)}")
