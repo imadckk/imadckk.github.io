@@ -1,5 +1,10 @@
 {
-  "last_updated": "2026-06-09T00:47:02.461088",
+  "last_updated": "2026-06-09T01:20:29.071348",
+  "date_range_checked": {
+    "from": "09/06/2026",
+    "months_ahead": 1,
+    "weekdays_only": true
+  },
   "vocational_summary": {
     "e-Hailing": [
       {
