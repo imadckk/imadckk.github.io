@@ -2,7 +2,7 @@ import json
 import os
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -26,6 +26,59 @@ CLASS_CAPACITY = {
     "KPP04": 50,
     "default": 50  # Default capacity if not found
 }
+
+def is_weekend(date):
+    """Check if date is Saturday (5) or Sunday (6)"""
+    # Monday=0, Tuesday=1, Wednesday=2, Thursday=3, Friday=4, Saturday=5, Sunday=6
+    return date.weekday() in [5, 6]
+
+def get_weekend_dates(start_date, end_date):
+    """Get all weekend dates between start_date and end_date (inclusive)"""
+    weekend_dates = []
+    current_date = start_date
+    
+    while current_date <= end_date:
+        if is_weekend(current_date):
+            weekend_dates.append(current_date)
+        current_date += timedelta(days=1)
+    
+    return weekend_dates
+
+def get_upcoming_weekends(months_ahead=1):
+    """
+    Get all weekend dates from current date through next X months
+    Returns list of dates to check
+    """
+    today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    
+    # Calculate end date (first day of month X months ahead)
+    end_date = today
+    for _ in range(months_ahead):
+        # Move to next month
+        if end_date.month == 12:
+            end_date = end_date.replace(year=end_date.year + 1, month=1)
+        else:
+            end_date = end_date.replace(month=end_date.month + 1)
+    
+    # Go to the last day of that month
+    if end_date.month == 12:
+        end_date = datetime(end_date.year, 12, 31)
+    else:
+        end_date = datetime(end_date.year, end_date.month + 1, 1) - timedelta(days=1)
+    
+    weekend_dates = get_weekend_dates(today, end_date)
+    
+    print(f"📅 Found {len(weekend_dates)} weekend dates to check:")
+    print(f"   From: {today.strftime('%Y-%m-%d')}")
+    print(f"   To: {end_date.strftime('%Y-%m-%d')}")
+    
+    # Show first few dates as preview
+    for i, date in enumerate(weekend_dates[:5]):
+        print(f"   {date.strftime('%Y-%m-%d')} ({date.strftime('%A')})")
+    if len(weekend_dates) > 5:
+        print(f"   ... and {len(weekend_dates) - 5} more")
+    
+    return weekend_dates
 
 def setup_driver():
     """Setup Chrome driver with automatic version management"""
@@ -102,7 +155,7 @@ def get_attendance_for_date(driver, search_date):
     """Fetch attendance for a specific date"""
     try:
         formatted_date_input = search_date.strftime("%d/%m/%Y")
-        print(f"  🔍 Checking {formatted_date_input}...", end=" ", flush=True)
+        print(f"  🔍 Checking {formatted_date_input} ({search_date.strftime('%A')})...", end=" ", flush=True)
         
         driver.get(f"{BASE_URL}/star/AttendanceRecord/Kpp")
         time.sleep(2)
@@ -173,25 +226,19 @@ def get_attendance_for_date(driver, search_date):
         print(f"❌ Error")
         return []
 
-def get_month_attendance(driver):
-    """Fetch attendance for current month"""
-    now = datetime.now()
-    print(f"\n📅 Fetching attendance for {now.strftime('%B %Y')}")
-    print("=" * 50)
+def get_attendance_for_weekends(driver, months_ahead=2):
+    """Fetch attendance only for weekend dates"""
+    weekend_dates = get_upcoming_weekends(months_ahead)
     
-    if now.month == 12:
-        next_month = datetime(now.year + 1, 1, 1)
-    else:
-        next_month = datetime(now.year, now.month + 1, 1)
-    num_days = (next_month - datetime(now.year, now.month, 1)).days
+    print(f"\n📅 Fetching attendance for {len(weekend_dates)} weekend dates")
+    print("=" * 50)
     
     all_records = []
     
-    for day in range(1, num_days + 1):
-        current_date = datetime(now.year, now.month, day)
-        records = get_attendance_for_date(driver, current_date)
+    for date in weekend_dates:
+        records = get_attendance_for_date(driver, date)
         all_records.extend(records)
-        time.sleep(1)
+        time.sleep(1)  # Be nice to the server
     
     return all_records
 
@@ -223,6 +270,11 @@ def save_data(attendance_records):
     
     output = {
         'last_updated': datetime.now().isoformat(),
+        'scrape_date_range': {
+            'from': simplified_data[0]['date'] if simplified_data else None,
+            'to': simplified_data[-1]['date'] if simplified_data else None,
+            'weekends_only': True
+        },
         'attendance_summary': simplified_data
     }
     
@@ -238,11 +290,17 @@ def save_data(attendance_records):
         for record in simplified_data:
             if record['date'] != current_date:
                 current_date = record['date']
-                print(f"\n📅 {record['date']}")
+                # Parse and show day of week
+                try:
+                    date_obj = datetime.strptime(record['date'], '%d/%m/%Y')
+                    day_name = date_obj.strftime('%A')
+                    print(f"\n📅 {record['date']} ({day_name})")
+                except:
+                    print(f"\n📅 {record['date']}")
             print(f"   {record['class_type']} {record['class_name']} ({record['present_count']}/{record['total_students']})")
 
 def main():
-    print("🚀 Driving School Attendance Scraper (Selenium Version)")
+    print("🚀 Driving School Attendance Scraper (Weekend-Optimized Version)")
     print("=" * 50)
     print(f"Username configured: {'Yes' if USERNAME else 'No'}")
     print(f"Password configured: {'Yes' if PASSWORD else 'No'}")
@@ -259,8 +317,10 @@ def main():
         print("✅ Browser ready")
         
         if login_with_selenium(driver):
-            print("\n✅ Ready to fetch attendance data")
-            attendance_data = get_month_attendance(driver)
+            print("\n✅ Ready to fetch attendance data (weekends only)")
+            
+            # Check weekends for current month + next 2 months (adjustable)
+            attendance_data = get_attendance_for_weekends(driver, months_ahead=2)
             
             if attendance_data:
                 save_data(attendance_data)
@@ -269,6 +329,9 @@ def main():
                 print("\n⚠️ No attendance records found")
                 output = {
                     'last_updated': datetime.now().isoformat(),
+                    'scrape_date_range': {
+                        'weekends_only': True
+                    },
                     'attendance_summary': []
                 }
                 with open('attendance.json', 'w') as f:
