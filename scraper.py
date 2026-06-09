@@ -44,7 +44,7 @@ def get_weekend_dates(start_date, end_date):
     
     return weekend_dates
 
-def get_upcoming_weekends(months_ahead=1):
+def get_upcoming_weekends(months_ahead=2):
     """
     Get all weekend dates from current date through next X months
     Returns list of dates to check
@@ -226,7 +226,7 @@ def get_attendance_for_date(driver, search_date):
         print(f"❌ Error")
         return []
 
-def get_attendance_for_weekends(driver, months_ahead=2):
+def get_attendance_for_weekends(driver, months_ahead=1):
     """Fetch attendance only for weekend dates"""
     weekend_dates = get_upcoming_weekends(months_ahead)
     
