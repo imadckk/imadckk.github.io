@@ -2,11 +2,11 @@ name: Scrape Driving School Attendance
 
 on:
   schedule:
-    # Runs every hour from 8 AM to 4 PM MALAYSIA TIME (UTC+8)
-    # Malaysia 8 AM = UTC 0 AM
-    # Malaysia 4 PM = UTC 8 AM
-    - cron: "0 0,1,2,3,4,5,6,7,8 * * *"
-  workflow_dispatch:
+    # Backup: still runs every hour from 8 AM to 5 PM
+    - cron: "0 0,1,2,3,4,5,6,7,8,9 * * *"
+  workflow_dispatch:  # Manual trigger
+  repository_dispatch:  # Trigger from cron-job.org
+    types: [scrape]
   push:
     branches: [ main, master ]
 
@@ -20,6 +20,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Debug - Show current time
+        run: |
+          echo "Current UTC time: $(date -u)"
+          echo "Current Malaysia time: $(TZ='Asia/Kuala_Lumpur' date)"
       
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -49,11 +54,22 @@ jobs:
           COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
         run: python scraper_vocational.py
       
-      - name: Commit and push changes
-        if: success()
+      - name: Check for changes
+        id: git-check
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add attendance.json vocational.json
-          git diff --staged --quiet || git commit -m "Auto-update attendance data [skip ci]"
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit and push changes
+        if: steps.git-check.outputs.has_changes == 'true'
+        run: |
+          git commit -m "Auto-update attendance data [$(TZ='Asia/Kuala_Lumpur' date +'%Y-%m-%d %H:%M:%S')] [skip ci]"
           git push
