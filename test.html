@@ -34,7 +34,11 @@
     }
     
     .tabs-wrapper::-webkit-scrollbar {
-      height: 3px;
+      display: none;
+    }
+
+    .tabs-wrapper {
+      scrollbar-width: none;  /* Hides scrollbar on Firefox */
     }
     
     .tabs-wrapper::-webkit-scrollbar-track {
