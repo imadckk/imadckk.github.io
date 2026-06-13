@@ -1,7 +1,7 @@
 {
-  "last_updated": "2026-06-12T22:12:41.208649",
+  "last_updated": "2026-06-13T00:12:11.757193",
   "date_range_checked": {
-    "from": "12/06/2026",
+    "from": "13/06/2026",
     "months_ahead": 1,
     "weekdays_only": true
   },
@@ -32,16 +32,7 @@
         "total_students": "50"
       }
     ],
-    "Bas Mini": [
-      {
-        "date": "12/06/2026",
-        "class_id": "30313",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "31",
-        "total_students": "50"
-      }
-    ],
+    "Bas Mini": [],
     "GDL": [
       {
         "date": "16/06/2026",
