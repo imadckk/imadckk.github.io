@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-06-20T03:04:14.989640",
+  "last_updated": "2026-06-20T04:03:40.916875",
   "scrape_date_range": {
     "from": "9",
     "to": "25/07/2026",
@@ -360,14 +360,14 @@
       "date": "27/06/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "23",
+      "present_count": "25",
       "total_students": "50"
     },
     {
       "date": "28/06/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "9",
+      "present_count": "10",
       "total_students": "50"
     },
     {
