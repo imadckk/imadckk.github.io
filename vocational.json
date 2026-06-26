@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-06-26T07:09:58.886143",
+  "last_updated": "2026-06-26T08:11:59.180991",
   "date_range_checked": {
     "from": "26/06/2026",
     "months_ahead": 1,
@@ -20,7 +20,7 @@
         "class_id": "30570",
         "class_name": "e-Hailing I",
         "class_code": "PSV II",
-        "present_count": "6",
+        "present_count": "7",
         "total_students": "50"
       },
       {
