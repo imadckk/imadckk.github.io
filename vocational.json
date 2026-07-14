@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-14T06:12:44.446050",
+  "last_updated": "2026-07-14T07:14:52.518259",
   "date_range_checked": {
     "from": "14/07/2026",
     "months_ahead": 1,
@@ -12,7 +12,23 @@
         "class_id": "30575",
         "class_name": "E-hailing ll",
         "class_code": "PSV II",
-        "present_count": "17",
+        "present_count": "18",
+        "total_students": "50"
+      },
+      {
+        "date": "04/08/2026",
+        "class_id": "30920",
+        "class_name": "e-Hailing I",
+        "class_code": "PSV II",
+        "present_count": "0",
+        "total_students": "50"
+      },
+      {
+        "date": "18/08/2026",
+        "class_id": "30921",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "0",
         "total_students": "50"
       }
     ],
@@ -33,6 +49,30 @@
         "class_name": "GDL - II",
         "class_code": "GDL II",
         "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "13/08/2026",
+        "class_id": "30918",
+        "class_name": "GDL - I",
+        "class_code": "GDL II",
+        "present_count": "0",
+        "total_students": "50"
+      },
+      {
+        "date": "14/08/2026",
+        "class_id": "30922",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "1",
+        "total_students": "50"
+      },
+      {
+        "date": "26/08/2026",
+        "class_id": "30919",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "0",
         "total_students": "50"
       }
     ]
