@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-18T21:11:37.123371",
+  "last_updated": "2026-07-18T22:18:47.022715",
   "date_range_checked": {
     "from": "18/07/2026",
     "months_ahead": 1,
@@ -7,14 +7,6 @@
   },
   "vocational_summary": {
     "e-Hailing": [
-      {
-        "date": "22/07/2026",
-        "class_id": "30575",
-        "class_name": "E-hailing ll",
-        "class_code": "PSV II",
-        "present_count": "25",
-        "total_students": "50"
-      },
       {
         "date": "04/08/2026",
         "class_id": "30920",
