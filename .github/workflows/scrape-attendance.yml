@@ -91,6 +91,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add vocational.json 2>/dev/null || true
           if ! git diff --staged --quiet; then
+            git pull --rebase origin main || true  # Pull latest changes
             git commit -m "Update Vocational attendance [$(TZ='Asia/Kuala_Lumpur' date +'%Y-%m-%d %H:%M:%S')] [skip ci]"
             git push
           fi
