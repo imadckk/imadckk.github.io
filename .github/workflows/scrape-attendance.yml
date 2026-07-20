@@ -2,10 +2,10 @@ name: Scrape Driving School Attendance
 
 on:
   schedule:
-    # Backup: still runs every hour from 8 AM to 5 PM
+    # Run at 8 AM, 12 PM, and 4 PM Malaysia time (UTC+8)
     - cron: "0 0,1,2,3,4,5,6,7,8,9 * * *"
-  workflow_dispatch:  # Manual trigger
-  repository_dispatch:  # Trigger from cron-job.org
+  workflow_dispatch:
+  repository_dispatch:
     types: [scrape]
   push:
     branches: [ main, master ]
@@ -14,17 +14,13 @@ permissions:
   contents: write
 
 jobs:
-  scrape:
+  scrape-kpp01:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Debug - Show current time
-        run: |
-          echo "Current UTC time: $(date -u)"
-          echo "Current Malaysia time: $(TZ='Asia/Kuala_Lumpur' date)"
       
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -38,9 +34,8 @@ jobs:
       
       - name: Install Python dependencies
         run: |
-          pip install selenium
-          pip install beautifulsoup4
-          pip install webdriver-manager
+          pip install --upgrade pip
+          pip install selenium beautifulsoup4 webdriver-manager
       
       - name: Run KPP01 attendance scraper
         env:
@@ -48,28 +43,54 @@ jobs:
           COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
         run: python scraper.py
       
+      - name: Commit KPP01 changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add attendance.json 2>/dev/null || true
+          if ! git diff --staged --quiet; then
+            git commit -m "Update KPP01 attendance [$(TZ='Asia/Kuala_Lumpur' date +'%Y-%m-%d %H:%M:%S')] [skip ci]"
+            git push
+          fi
+
+  scrape-vocational:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Chrome and ChromeDriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+          # Verify installation
+          chromium-browser --version
+          chromedriver --version
+      
+      - name: Install Python dependencies
+        run: |
+          pip install --upgrade pip
+          pip install selenium beautifulsoup4 webdriver-manager
+      
       - name: Run Vocational attendance scraper
         env:
           COMPANY_USERNAME: ${{ secrets.COMPANY_USERNAME }}
           COMPANY_PASSWORD: ${{ secrets.COMPANY_PASSWORD }}
         run: python scraper_vocational.py
       
-      - name: Check for changes
-        id: git-check
+      - name: Commit Vocational changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add attendance.json vocational.json
-          if git diff --staged --quiet; then
-            echo "No changes to commit"
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "Changes detected"
-            echo "has_changes=true" >> $GITHUB_OUTPUT
+          git add vocational.json 2>/dev/null || true
+          if ! git diff --staged --quiet; then
+            git commit -m "Update Vocational attendance [$(TZ='Asia/Kuala_Lumpur' date +'%Y-%m-%d %H:%M:%S')] [skip ci]"
+            git push
           fi
-      
-      - name: Commit and push changes
-        if: steps.git-check.outputs.has_changes == 'true'
-        run: |
-          git commit -m "Auto-update attendance data [$(TZ='Asia/Kuala_Lumpur' date +'%Y-%m-%d %H:%M:%S')] [skip ci]"
-          git push
