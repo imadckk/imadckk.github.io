@@ -91,7 +91,10 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add vocational.json 2>/dev/null || true
           if ! git diff --staged --quiet; then
-            git pull --rebase origin main || true  # Pull latest changes
             git commit -m "Update Vocational attendance [$(TZ='Asia/Kuala_Lumpur' date +'%Y-%m-%d %H:%M:%S')] [skip ci]"
+            # Pull rebase with stash to handle race conditions
+            git stash push -m "temp-stash"
+            git pull --rebase origin main || git pull --rebase origin master || true
+            git stash pop || true
             git push
           fi
