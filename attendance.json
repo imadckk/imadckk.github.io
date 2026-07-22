@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-22T05:14:08.816345",
+  "last_updated": "2026-07-22T06:03:41.697972",
   "scrape_date_range": {
     "from": "7",
     "to": "22/08/2026",
@@ -430,7 +430,7 @@
       "date": "01/08/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 MYLESEN (1)",
-      "present_count": "27",
+      "present_count": "28",
       "total_students": "50"
     },
     {
