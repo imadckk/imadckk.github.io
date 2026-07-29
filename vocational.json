@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-29T04:07:04.244847",
+  "last_updated": "2026-07-29T05:07:20.476543",
   "date_range_checked": {
     "from": "29/07/2026",
     "months_ahead": 1,
@@ -30,7 +30,7 @@
         "class_id": "30595",
         "class_name": "PSV - I",
         "class_code": "PSV II",
-        "present_count": "7",
+        "present_count": "6",
         "total_students": "50"
       }
     ],
