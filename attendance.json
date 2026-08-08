@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-08-08T05:04:17.052964",
+  "last_updated": "2026-08-08T05:45:10.530850",
   "scrape_date_range": {
     "from": "4",
     "to": "22/08/2026",
@@ -427,90 +427,6 @@
       "total_students": "50"
     },
     {
-      "date": "8",
-      "class_name": "7",
-      "class_type": "9",
-      "present_count": "10",
-      "total_students": "50"
-    },
-    {
-      "date": "15",
-      "class_name": "14",
-      "class_type": "16",
-      "present_count": "17",
-      "total_students": "50"
-    },
-    {
-      "date": "22",
-      "class_name": "21",
-      "class_type": "23",
-      "present_count": "24",
-      "total_students": "50"
-    },
-    {
-      "date": "29",
-      "class_name": "28",
-      "class_type": "30",
-      "present_count": "0",
-      "total_students": "50"
-    },
-    {
-      "date": "8",
-      "class_name": "7",
-      "class_type": "9",
-      "present_count": "10",
-      "total_students": "50"
-    },
-    {
-      "date": "15",
-      "class_name": "14",
-      "class_type": "16",
-      "present_count": "17",
-      "total_students": "50"
-    },
-    {
-      "date": "22",
-      "class_name": "21",
-      "class_type": "23",
-      "present_count": "24",
-      "total_students": "50"
-    },
-    {
-      "date": "29",
-      "class_name": "28",
-      "class_type": "30",
-      "present_count": "0",
-      "total_students": "50"
-    },
-    {
-      "date": "8",
-      "class_name": "7",
-      "class_type": "9",
-      "present_count": "10",
-      "total_students": "50"
-    },
-    {
-      "date": "15",
-      "class_name": "14",
-      "class_type": "16",
-      "present_count": "17",
-      "total_students": "50"
-    },
-    {
-      "date": "22",
-      "class_name": "21",
-      "class_type": "23",
-      "present_count": "24",
-      "total_students": "50"
-    },
-    {
-      "date": "29",
-      "class_name": "28",
-      "class_type": "30",
-      "present_count": "0",
-      "total_students": "50"
-    },
-    {
       "date": "08/08/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
@@ -521,7 +437,7 @@
       "date": "16/08/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "30",
+      "present_count": "31",
       "total_students": "50"
     },
     {
