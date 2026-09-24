@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-24T07:07:30.306183",
+  "last_updated": "2026-09-24T08:05:37.292817",
   "date_range_checked": {
     "from": "24/09/2026",
     "months_ahead": 1,
@@ -30,7 +30,7 @@
         "class_id": "31220",
         "class_name": "PSV - I",
         "class_code": "PSV II",
-        "present_count": "31",
+        "present_count": "32",
         "total_students": "50"
       }
     ],
@@ -40,7 +40,7 @@
         "class_id": "31606",
         "class_name": "GDL - II",
         "class_code": "GDL II",
-        "present_count": "17",
+        "present_count": "18",
         "total_students": "50"
       },
       {
