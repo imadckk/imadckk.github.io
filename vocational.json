@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-09-28T18:07:18.926239",
+  "last_updated": "2026-09-28T19:07:05.054608",
   "date_range_checked": {
     "from": "28/09/2026",
     "months_ahead": 1,
@@ -25,6 +25,14 @@
       }
     ],
     "Bas Mini": [
+      {
+        "date": "29/09/2026",
+        "class_id": "31220",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
       {
         "date": "29/09/2026",
         "class_id": "31220",
