@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-04T01:09:40.854014",
+  "last_updated": "2026-10-04T02:09:43.456808",
   "date_range_checked": {
     "from": "04/10/2026",
     "months_ahead": 1,
@@ -32,7 +32,7 @@
         "class_id": "31606",
         "class_name": "GDL - II",
         "class_code": "GDL II",
-        "present_count": "40",
+        "present_count": "41",
         "total_students": "50"
       },
       {
@@ -40,7 +40,7 @@
         "class_id": "31607",
         "class_name": "GDL - II",
         "class_code": "GDL II",
-        "present_count": "1",
+        "present_count": "2",
         "total_students": "50"
       }
     ]
