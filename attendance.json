@@ -1,39 +1,11 @@
 {
-  "last_updated": "2026-10-03T23:04:17.890773",
+  "last_updated": "2026-10-04T00:04:12.536202",
   "scrape_date_range": {
     "from": "6",
     "to": "28/11/2026",
     "weekends_only": true
   },
   "attendance_summary": [
-    {
-      "date": "6",
-      "class_name": "5",
-      "class_type": "7",
-      "present_count": "8",
-      "total_students": "50"
-    },
-    {
-      "date": "13",
-      "class_name": "12",
-      "class_type": "14",
-      "present_count": "15",
-      "total_students": "50"
-    },
-    {
-      "date": "20",
-      "class_name": "19",
-      "class_type": "21",
-      "present_count": "22",
-      "total_students": "50"
-    },
-    {
-      "date": "27",
-      "class_name": "26",
-      "class_type": "28",
-      "present_count": "29",
-      "total_students": "50"
-    },
     {
       "date": "6",
       "class_name": "5",
@@ -577,7 +549,14 @@
       "date": "04/10/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "50",
+      "present_count": "49",
+      "total_students": "50"
+    },
+    {
+      "date": "04/10/2026",
+      "class_name": "KPP01 GABUNGAN",
+      "class_type": "KPP01 CLASS 2",
+      "present_count": "0",
       "total_students": "50"
     },
     {
