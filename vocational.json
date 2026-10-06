@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-06T00:09:34.119911",
+  "last_updated": "2026-10-06T01:09:33.017310",
   "date_range_checked": {
     "from": "06/10/2026",
     "months_ahead": 1,
@@ -12,7 +12,7 @@
         "class_id": "31609",
         "class_name": "E-hailing ll",
         "class_code": "PSV II",
-        "present_count": "8",
+        "present_count": "9",
         "total_students": "50"
       }
     ],
@@ -32,7 +32,7 @@
         "class_id": "31606",
         "class_name": "GDL - II",
         "class_code": "GDL II",
-        "present_count": "44",
+        "present_count": "47",
         "total_students": "50"
       },
       {
