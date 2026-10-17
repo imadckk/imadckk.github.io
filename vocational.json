@@ -1,12 +1,21 @@
 {
-  "last_updated": "2026-10-17T20:08:09.624653",
+  "last_updated": "2026-10-17T21:08:08.329332",
   "date_range_checked": {
     "from": "17/10/2026",
     "months_ahead": 1,
     "weekdays_only": true
   },
   "vocational_summary": {
-    "e-Hailing": [],
+    "e-Hailing": [
+      {
+        "date": "04/11/2026",
+        "class_id": "31888",
+        "class_name": "e-Hailing I",
+        "class_code": "PSV II",
+        "present_count": "1",
+        "total_students": "50"
+      }
+    ],
     "Bas Mini": [],
     "GDL": []
   }
