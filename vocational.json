@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-20T19:08:06.201123",
+  "last_updated": "2026-10-20T20:08:01.808766",
   "date_range_checked": {
     "from": "20/10/2026",
     "months_ahead": 1,
@@ -176,51 +176,11 @@
         "total_students": "50"
       },
       {
-        "date": "21/10/2026",
-        "class_id": "31609",
-        "class_name": "E-hailing ll",
+        "date": "04/11/2026",
+        "class_id": "31888",
+        "class_name": "e-Hailing I",
         "class_code": "PSV II",
-        "present_count": "38",
-        "total_students": "50"
-      },
-      {
-        "date": "21/10/2026",
-        "class_id": "31609",
-        "class_name": "E-hailing ll",
-        "class_code": "PSV II",
-        "present_count": "38",
-        "total_students": "50"
-      },
-      {
-        "date": "21/10/2026",
-        "class_id": "31609",
-        "class_name": "E-hailing ll",
-        "class_code": "PSV II",
-        "present_count": "38",
-        "total_students": "50"
-      },
-      {
-        "date": "21/10/2026",
-        "class_id": "31609",
-        "class_name": "E-hailing ll",
-        "class_code": "PSV II",
-        "present_count": "38",
-        "total_students": "50"
-      },
-      {
-        "date": "21/10/2026",
-        "class_id": "31609",
-        "class_name": "E-hailing ll",
-        "class_code": "PSV II",
-        "present_count": "38",
-        "total_students": "50"
-      },
-      {
-        "date": "21/10/2026",
-        "class_id": "31609",
-        "class_name": "E-hailing ll",
-        "class_code": "PSV II",
-        "present_count": "38",
+        "present_count": "1",
         "total_students": "50"
       }
     ],
