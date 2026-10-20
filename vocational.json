@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-20T15:08:24.544674",
+  "last_updated": "2026-10-20T16:08:55.612366",
   "date_range_checked": {
     "from": "20/10/2026",
     "months_ahead": 1,
@@ -14,18 +14,217 @@
         "class_code": "PSV II",
         "present_count": "38",
         "total_students": "50"
-      }
-    ],
-    "Bas Mini": [
+      },
       {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
         "class_code": "PSV II",
-        "present_count": "8",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
+        "total_students": "50"
+      },
+      {
+        "date": "21/10/2026",
+        "class_id": "31609",
+        "class_name": "E-hailing ll",
+        "class_code": "PSV II",
+        "present_count": "38",
         "total_students": "50"
       }
     ],
+    "Bas Mini": [],
     "GDL": []
   }
 }
