@@ -1,21 +1,12 @@
 {
-  "last_updated": "2026-10-21T18:07:54.568123",
+  "last_updated": "2026-10-21T19:07:35.838877",
   "date_range_checked": {
     "from": "21/10/2026",
     "months_ahead": 1,
     "weekdays_only": true
   },
   "vocational_summary": {
-    "e-Hailing": [
-      {
-        "date": "18/11/2026",
-        "class_id": "31889",
-        "class_name": "E-hailing ll",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      }
-    ],
+    "e-Hailing": [],
     "Bas Mini": [
       {
         "date": "30/10/2026",
@@ -41,14 +32,6 @@
         "class_name": "GDL - II",
         "class_code": "GDL II",
         "present_count": "50",
-        "total_students": "50"
-      },
-      {
-        "date": "11/11/2026",
-        "class_id": "31891",
-        "class_name": "GDL - I",
-        "class_code": "GDL II",
-        "present_count": "7",
         "total_students": "50"
       },
       {
