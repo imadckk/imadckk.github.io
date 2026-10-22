@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-22T04:07:25.119505",
+  "last_updated": "2026-10-22T05:07:29.083106",
   "date_range_checked": {
     "from": "22/10/2026",
     "months_ahead": 1,
@@ -8,15 +8,6 @@
   "vocational_summary": {
     "e-Hailing": [],
     "Bas Mini": [],
-    "GDL": [
-      {
-        "date": "24/11/2026",
-        "class_id": "31892",
-        "class_name": "GDL - II",
-        "class_code": "GDL II",
-        "present_count": "0",
-        "total_students": "50"
-      }
-    ]
+    "GDL": []
   }
 }
