@@ -1,39 +1,11 @@
 {
-  "last_updated": "2026-10-25T23:03:33.924832",
+  "last_updated": "2026-10-26T00:03:46.537093",
   "scrape_date_range": {
     "from": "6",
     "to": "28/11/2026",
     "weekends_only": true
   },
   "attendance_summary": [
-    {
-      "date": "6",
-      "class_name": "5",
-      "class_type": "7",
-      "present_count": "8",
-      "total_students": "50"
-    },
-    {
-      "date": "13",
-      "class_name": "12",
-      "class_type": "14",
-      "present_count": "15",
-      "total_students": "50"
-    },
-    {
-      "date": "20",
-      "class_name": "19",
-      "class_type": "21",
-      "present_count": "22",
-      "total_students": "50"
-    },
-    {
-      "date": "27",
-      "class_name": "26",
-      "class_type": "28",
-      "present_count": "29",
-      "total_students": "50"
-    },
     {
       "date": "6",
       "class_name": "5",
