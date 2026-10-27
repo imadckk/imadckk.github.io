@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-27T07:07:20.228976",
+  "last_updated": "2026-10-27T08:07:19.116509",
   "date_range_checked": {
     "from": "27/10/2026",
     "months_ahead": 1,
@@ -9,8 +9,8 @@
     "e-Hailing": [],
     "Bas Mini": [
       {
-        "date": "25/11/2026",
-        "class_id": "31890",
+        "date": "30/10/2026",
+        "class_id": "31752",
         "class_name": "PSV - I",
         "class_code": "PSV II",
         "present_count": "12",
@@ -123,19 +123,99 @@
         "total_students": "50"
       },
       {
-        "date": "11/11/2026",
-        "class_id": "31891",
-        "class_name": "GDL - I",
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
         "class_code": "GDL II",
-        "present_count": "20",
+        "present_count": "50",
         "total_students": "50"
       },
       {
-        "date": "24/11/2026",
-        "class_id": "31892",
+        "date": "27/10/2026",
+        "class_id": "31607",
         "class_name": "GDL - II",
         "class_code": "GDL II",
-        "present_count": "0",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
+        "total_students": "50"
+      },
+      {
+        "date": "27/10/2026",
+        "class_id": "31607",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "50",
         "total_students": "50"
       }
     ]
