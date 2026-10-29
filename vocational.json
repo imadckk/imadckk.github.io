@@ -1,77 +1,22 @@
 {
-  "last_updated": "2026-10-29T22:06:56.635344",
+  "last_updated": "2026-10-29T23:07:10.080773",
   "date_range_checked": {
     "from": "29/10/2026",
     "months_ahead": 1,
     "weekdays_only": true
   },
   "vocational_summary": {
-    "e-Hailing": [],
+    "e-Hailing": [
+      {
+        "date": "04/11/2026",
+        "class_id": "31888",
+        "class_name": "e-Hailing I",
+        "class_code": "PSV II",
+        "present_count": "0",
+        "total_students": "50"
+      }
+    ],
     "Bas Mini": [
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
       {
         "date": "30/10/2026",
         "class_id": "31752",
