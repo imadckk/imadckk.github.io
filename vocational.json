@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-30T09:06:33.449489",
+  "last_updated": "2026-10-30T10:07:38.491040",
   "date_range_checked": {
     "from": "30/10/2026",
     "months_ahead": 1,
@@ -161,8 +161,24 @@
         "total_students": "50"
       },
       {
-        "date": "25/11/2026",
-        "class_id": "31890",
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
         "class_name": "PSV - I",
         "class_code": "PSV II",
         "present_count": "12",
