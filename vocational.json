@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-30T03:45:36.008754",
+  "last_updated": "2026-10-30T04:06:27.557153",
   "date_range_checked": {
     "from": "30/10/2026",
     "months_ahead": 1,
@@ -8,46 +8,6 @@
   "vocational_summary": {
     "e-Hailing": [],
     "Bas Mini": [
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
-      {
-        "date": "30/10/2026",
-        "class_id": "31752",
-        "class_name": "PSV - I",
-        "class_code": "PSV II",
-        "present_count": "12",
-        "total_students": "50"
-      },
       {
         "date": "30/10/2026",
         "class_id": "31752",
