@@ -1,22 +1,69 @@
 {
-  "last_updated": "2026-10-30T07:06:35.481839",
+  "last_updated": "2026-10-30T08:06:42.769217",
   "date_range_checked": {
     "from": "30/10/2026",
     "months_ahead": 1,
     "weekdays_only": true
   },
   "vocational_summary": {
-    "e-Hailing": [
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      }
-    ],
+    "e-Hailing": [],
     "Bas Mini": [
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
+      {
+        "date": "30/10/2026",
+        "class_id": "31752",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "12",
+        "total_students": "50"
+      },
       {
         "date": "30/10/2026",
         "class_id": "31752",
@@ -98,6 +145,15 @@
         "total_students": "50"
       }
     ],
-    "GDL": []
+    "GDL": [
+      {
+        "date": "24/11/2026",
+        "class_id": "31892",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "0",
+        "total_students": "50"
+      }
+    ]
   }
 }
