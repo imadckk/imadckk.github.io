@@ -1,40 +1,12 @@
 {
-  "last_updated": "2026-10-30T23:03:29.198054",
+  "last_updated": "2026-11-01T02:06:26.347387",
   "scrape_date_range": {
-    "from": "6",
+    "from": "3",
     "to": "28/11/2026",
     "weekends_only": true
   },
   "attendance_summary": [
     {
-      "date": "6",
-      "class_name": "5",
-      "class_type": "7",
-      "present_count": "8",
-      "total_students": "50"
-    },
-    {
-      "date": "13",
-      "class_name": "12",
-      "class_type": "14",
-      "present_count": "15",
-      "total_students": "50"
-    },
-    {
-      "date": "20",
-      "class_name": "19",
-      "class_type": "21",
-      "present_count": "22",
-      "total_students": "50"
-    },
-    {
-      "date": "27",
-      "class_name": "26",
-      "class_type": "28",
-      "present_count": "29",
-      "total_students": "50"
-    },
-    {
       "date": "3",
       "class_name": "2",
       "class_type": "4",
@@ -347,27 +319,251 @@
       "class_name": "30",
       "class_type": "",
       "present_count": "0",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
+      "total_students": "50"
+    },
+    {
+      "date": "8",
+      "class_name": "7",
+      "class_type": "9",
+      "present_count": "10",
+      "total_students": "50"
+    },
+    {
+      "date": "15",
+      "class_name": "14",
+      "class_type": "16",
+      "present_count": "17",
+      "total_students": "50"
+    },
+    {
+      "date": "22",
+      "class_name": "21",
+      "class_type": "23",
+      "present_count": "24",
+      "total_students": "50"
+    },
+    {
+      "date": "29",
+      "class_name": "28",
+      "class_type": "30",
+      "present_count": "31",
       "total_students": "50"
     },
     {
       "date": "01/11/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "39",
+      "present_count": "0",
       "total_students": "50"
     },
     {
       "date": "07/11/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "13",
+      "present_count": "15",
       "total_students": "50"
     },
     {
       "date": "15/11/2026",
       "class_name": "KPP01 GABUNGAN",
       "class_type": "KPP01 CLASS 1",
-      "present_count": "2",
+      "present_count": "3",
       "total_students": "50"
     },
     {
