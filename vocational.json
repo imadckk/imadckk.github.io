@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-04T06:09:57.442096",
+  "last_updated": "2026-11-04T08:10:05.460656",
   "date_range_checked": {
     "from": "04/11/2026",
     "months_ahead": 1,
@@ -216,135 +216,24 @@
         "total_students": "50"
       },
       {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
+        "date": "18/11/2026",
+        "class_id": "31889",
+        "class_name": "E-hailing ll",
         "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "04/11/2026",
-        "class_id": "31888",
-        "class_name": "e-Hailing I",
-        "class_code": "PSV II",
-        "present_count": "0",
+        "present_count": "20",
         "total_students": "50"
       }
     ],
-    "Bas Mini": [],
+    "Bas Mini": [
+      {
+        "date": "25/11/2026",
+        "class_id": "31890",
+        "class_name": "PSV - I",
+        "class_code": "PSV II",
+        "present_count": "13",
+        "total_students": "50"
+      }
+    ],
     "GDL": []
   }
 }
