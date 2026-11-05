@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-05T21:09:55.781116",
+  "last_updated": "2026-11-05T22:09:42.634215",
   "date_range_checked": {
     "from": "05/11/2026",
     "months_ahead": 1,
@@ -17,6 +17,15 @@
       }
     ],
     "Bas Mini": [],
-    "GDL": []
+    "GDL": [
+      {
+        "date": "24/11/2026",
+        "class_id": "31892",
+        "class_name": "GDL - II",
+        "class_code": "GDL II",
+        "present_count": "2",
+        "total_students": "50"
+      }
+    ]
   }
 }
