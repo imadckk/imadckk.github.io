@@ -82,22 +82,44 @@ def get_upcoming_weekends(months_ahead=1):
 
 
 def setup_driver():
-    """Setup Chrome driver with automatic version management"""
+    """Setup Chrome driver with a realistic browser fingerprint."""
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    options.add_argument('--headless=new')          # new headless is much closer to real Chrome
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920,1080')
-    options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-    # Help avoid basic bot detection
+    options.add_argument('--lang=en-US,en')
+    options.add_argument(
+        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/120.0.0.0 Safari/537.36'
+    )
+    # Reduce automation fingerprints
     options.add_argument('--disable-blink-features=AutomationControlled')
-    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     options.add_experimental_option('useAutomationExtension', False)
+    options.add_experimental_option("prefs", {
+        "profile.default_content_setting_values.notifications": 2,
+        "credentials_enable_service": False,
+    })
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
-    driver.set_page_load_timeout(30)
+    driver.set_page_load_timeout(45)
+    driver.implicitly_wait(0)
+
+    # Patch navigator.webdriver so it looks like a normal browser
+    driver.execute_cdp_cmd(
+        "Page.addScriptToEvaluateOnNewDocument",
+        {
+            "source": """
+                Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+                Object.defineProperty(navigator, 'languages', {get: () => ['en-US','en']});
+                Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+            """
+        },
+    )
     return driver
 
 
@@ -545,6 +567,31 @@ def save_data(attendance_records):
                     print(f"\n📅 {record['date']}")
             print(f"   {record['class_type']} {record['class_name']} ({record['present_count']}/{record['total_students']})")
 
+def raw_http_probe():
+    """Print the raw HTTP response so we can see what the server sends."""
+    import urllib.request, urllib.error
+    url = f"{BASE_URL}/star/User/Login"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive',
+    }
+    print(f"🌐 Raw HTTP probe: {url}")
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            body = resp.read()
+            print(f"   Status: {resp.status}")
+            print(f"   Headers: {dict(resp.headers)}")
+            print(f"   Body length: {len(body)}")
+            print(f"   Body repr (first 1000): {body[:1000]!r}")
+    except urllib.error.HTTPError as e:
+        print(f"   HTTPError: {e.code} {e.reason}")
+        print(f"   Body: {e.read()[:1000]!r}")
+    except Exception as e:
+        print(f"   Error: {e!r}")
+
 def main():
     print("🚀 Driving School Attendance Scraper (Weekend-Optimized Version)")
     print("=" * 50)
@@ -555,6 +602,9 @@ def main():
     if not USERNAME or not PASSWORD:
         print("❌ Missing credentials!")
         exit(1)
+
+    raw_http_probe()
+    print()
     
     driver = None
     try:
