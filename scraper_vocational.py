@@ -64,37 +64,80 @@ def get_dates_to_check():
     return dates_to_check, today, end_date
 
 def setup_driver():
-    """Setup Chrome driver with automatic version management - FIXED for GitHub Actions"""
+    """Setup Chrome driver - FIXED for HTTP-only site (no HTTPS upgrade)."""
     options = webdriver.ChromeOptions()
-    
+
     # Critical for GitHub Actions
-    options.add_argument('--headless')
+    options.add_argument('--headless=new')          # modern headless, behaves like real Chrome
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--disable-extensions')
     options.add_argument('--disable-setuid-sandbox')
+    options.add_argument('--lang=en-US,en')
+
+    # === CRITICAL: stop Chrome from upgrading HTTP → HTTPS ===
+    # The site is HTTP-only; without these, Chrome tries https:// and fails
+    # with net::ERR_BLOCKED_BY_CLIENT, leaving an empty page.
+    options.add_argument(
+        '--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,HttpsFirstModeV2'
+    )
+    options.add_argument('--allow-running-insecure-content')
+    options.add_argument('--ignore-certificate-errors')
+
+    # Realistic UA + anti-automation
+    options.add_argument(
+        '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+        'AppleWebKit/537.36 (KHTML, like Gecko) '
+        'Chrome/120.0.0.0 Safari/537.36'
+    )
     options.add_argument('--disable-blink-features=AutomationControlled')
-    options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-    
-    # Explicitly set binary location for Chrome in GitHub Actions
-    options.binary_location = '/usr/bin/chromium-browser'
-    
+    options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+    options.add_experimental_option('useAutomationExtension', False)
+
+    # === CRITICAL: prefs that disable HTTPS-first/upgrade at the profile level ===
+    options.add_experimental_option("prefs", {
+        "profile.default_content_setting_values.notifications": 2,
+        "credentials_enable_service": False,
+        "https_upgrades_enabled": False,     # <-- the key pref
+        "https_first_mode_enabled": False,
+    })
+
+    # Network logging (useful for debugging; harmless in production)
+    options.set_capability("goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"})
+
+    # Note: removed options.binary_location = '/usr/bin/chromium-browser'
+    # That path often doesn't exist on GitHub Actions Ubuntu runners, which
+    # ship Google Chrome at /usr/bin/google-chrome or via the webdriver-manager
+    # downloaded Chrome. Let webdriver-manager pick the binary.
+
     try:
-        # Try webdriver-manager first
         print("   Installing ChromeDriver...")
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
+        driver.set_page_load_timeout(45)
+
+        # Patch navigator.webdriver and friends
+        driver.execute_cdp_cmd(
+            "Page.addScriptToEvaluateOnNewDocument",
+            {"source": """
+                Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+                Object.defineProperty(navigator, 'languages', {get: () => ['en-US','en']});
+                Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+                window.chrome = window.chrome || {runtime: {}};
+            """}
+        )
+
         print("   ✅ ChromeDriver initialized successfully")
         return driver
     except Exception as e:
         print(f"   ⚠️ WebDriver-manager failed: {e}")
-        # Fallback: use system ChromeDriver
         try:
             print("   Trying system ChromeDriver...")
             service = Service('/usr/bin/chromedriver')
             driver = webdriver.Chrome(service=service, options=options)
+            driver.set_page_load_timeout(45)
             print("   ✅ System ChromeDriver initialized successfully")
             return driver
         except Exception as e2:
@@ -112,6 +155,23 @@ def login_with_selenium(driver):
         print(f"   Navigating to {BASE_URL}/star/User/Login...")
         driver.get(f"{BASE_URL}/star/User/Login")
         print(f"   Page loaded: {driver.title}")
+
+        try:
+            perf = driver.get_log("performance")
+            for entry in perf:
+                try:
+                    msg = json.loads(entry["message"])["message"]
+                except Exception:
+                    continue
+                if msg.get("method") == "Network.requestWillBeSent":
+                    url = msg["params"]["request"]["url"]
+                    if "User/Login" in url:
+                        print(f"   🌐 Navigated to: {url}")
+                elif msg.get("method") == "Network.loadingFailed":
+                    params = msg["params"]
+                    print(f"   ❌ FAIL {params.get('errorText')}")
+        except Exception:
+            pass
         
         # Wait for page to be ready
         WebDriverWait(driver, 10).until(
