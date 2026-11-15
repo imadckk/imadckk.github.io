@@ -80,6 +80,7 @@ def get_upcoming_weekends(months_ahead=1):
     
     return weekend_dates
 
+
 def setup_driver():
     """Setup Chrome driver with automatic version management"""
     options = webdriver.ChromeOptions()
@@ -89,85 +90,294 @@ def setup_driver():
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
-    # Add these to help with compatibility
+    # Help avoid basic bot detection
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
-    
+
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
-    # Set page load timeout
     driver.set_page_load_timeout(30)
     return driver
 
+
+def debug_page(driver):
+    """
+    Dump page structure to diagnose missing elements.
+    Saves debug_page.html and debug_page.png for offline inspection.
+    """
+    print("\n🔬 Running page diagnostic...")
+
+    try:
+        driver.get(f"{BASE_URL}/star/User/Login")
+
+        # Wait for full document load
+        try:
+            WebDriverWait(driver, 20).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
+        except Exception as e:
+            print(f"   ⚠️ readyState wait timed out: {e}")
+
+        print("=== DEBUG DUMP ===")
+        print(f"Title: {driver.title!r}")
+        print(f"URL: {driver.current_url}")
+        source = driver.page_source
+        print(f"Source length: {len(source)}")
+
+        # Save page source for offline inspection
+        try:
+            with open("debug_page.html", "w", encoding="utf-8") as f:
+                f.write(source)
+            print("   💾 Saved debug_page.html")
+        except Exception as e:
+            print(f"   ⚠️ Could not save debug_page.html: {e}")
+
+        # Save screenshot
+        try:
+            driver.save_screenshot("debug_page.png")
+            print("   💾 Saved debug_page.png")
+        except Exception as e:
+            print(f"   ⚠️ Could not save debug_page.png: {e}")
+
+        # Count common elements
+        for tag in ["input", "form", "iframe", "button", "select", "a"]:
+            try:
+                els = driver.find_elements(By.TAG_NAME, tag)
+                print(f"  <{tag}>: {len(els)} found")
+                for e in els[:10]:
+                    try:
+                        eid = e.get_attribute('id')
+                        ename = e.get_attribute('name')
+                        etype = e.get_attribute('type')
+                        etext = (e.text or "")[:40].replace("\n", " ")
+                        print(f"    - id={eid!r} name={ename!r} type={etype!r} text={etext!r}")
+                    except Exception:
+                        pass
+            except Exception as e:
+                print(f"  ⚠️ Error enumerating <{tag}>: {e}")
+
+        # Try a few selectors
+        print("  --- Selector probes ---")
+        probes = [
+            (By.ID, "UserName"),
+            (By.CSS_SELECTOR, "#UserName"),
+            (By.CSS_SELECTOR, "input[name='UserName']"),
+            (By.CSS_SELECTOR, "input[id='UserName']"),
+            (By.NAME, "UserName"),
+            (By.XPATH, "//input[@id='UserName']"),
+            (By.CSS_SELECTOR, "input[type='text']"),
+            (By.ID, "Password"),
+            (By.ID, "btnLogin"),
+            (By.ID, "login-form"),
+        ]
+        for method, sel in probes:
+            try:
+                found = driver.find_elements(method, sel)
+                print(f"  {method}={sel!r}: {len(found)} match(es)")
+            except Exception as e:
+                print(f"  {method}={sel!r}: ERROR {e}")
+
+        # Iframes (likely culprit if count > 0)
+        try:
+            iframes = driver.find_elements(By.TAG_NAME, "iframe")
+            for i, ifr in enumerate(iframes):
+                print(f"  iframe[{i}] src={ifr.get_attribute('src')!r} id={ifr.get_attribute('id')!r} name={ifr.get_attribute('name')!r}")
+        except Exception as e:
+            print(f"  ⚠️ iframe enumeration error: {e}")
+
+        # Body text (first 500 chars) to confirm page rendered content
+        try:
+            body = driver.find_element(By.TAG_NAME, "body")
+            body_text = (body.text or "")[:500]
+            print(f"  Body text (first 500 chars): {body_text!r}")
+        except Exception as e:
+            print(f"  ⚠️ Body read error: {e}")
+
+        # Detect common JS framework markers
+        for marker in ["react", "vue", "angular", "next", "nuxt"]:
+            try:
+                has = driver.execute_script(
+                    f"return !!document.querySelector('[class*=\"{marker}\"], [id*=\"{marker}\"]')"
+                )
+                if has:
+                    print(f"  JS framework hint: {marker}")
+            except Exception:
+                pass
+
+        print("=== END DEBUG DUMP ===\n")
+
+    except Exception as e:
+        print(f"❌ Diagnostic error: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            driver.save_screenshot("debug_page.png")
+            with open("debug_page.html", "w", encoding="utf-8") as f:
+                f.write(driver.page_source)
+            print("   💾 Saved debug artifacts (with errors)")
+        except Exception:
+            pass
+
+
 def login_with_selenium(driver):
-    """Login using Selenium with better waiting"""
+    """Login using Selenium with robust element waiting and diagnostics."""
     print("🔐 Attempting login with Selenium...")
-    
+
     try:
         login_url = f"{BASE_URL}/star/User/Login"
         print(f"   Navigating to: {login_url}")
         driver.get(login_url)
-        
-        # Wait for page to load - check title or body
-        WebDriverWait(driver, 20).until(
-            lambda d: d.execute_script("return document.readyState") == "complete"
-        )
+
+        # Wait until document is complete
+        try:
+            WebDriverWait(driver, 20).until(
+                lambda d: d.execute_script("return document.readyState") == "complete"
+            )
+        except Exception:
+            pass
+
         print(f"   Page loaded: {driver.title}")
         print(f"   Current URL: {driver.current_url}")
-        
-        # Wait explicitly for the username field to be present
-        print("   Waiting for login form...")
-        username_field = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.ID, "UserName"))
-        )
+
+        # Give client-side rendering a short grace period
+        time.sleep(2)
+
+        # Handle possible iframes (if form is embedded)
+        try:
+            iframes = driver.find_elements(By.TAG_NAME, "iframe")
+            if iframes:
+                print(f"   ⚠️ Found {len(iframes)} iframe(s) - switching into first frame")
+                WebDriverWait(driver, 10).until(
+                    EC.frame_to_be_available_and_switch_to_it((By.TAG_NAME, "iframe"))
+                )
+        except Exception as e:
+            print(f"   ⚠️ Iframe handling skipped: {e}")
+
+        # Wait for username field (presence, not visibility - more lenient)
+        print("   Waiting for login form (up to 30s)...")
+        try:
+            username_field = WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.ID, "UserName"))
+            )
+        except Exception:
+            # Fallback selectors if ID doesn't match
+            print("   ⚠️ #UserName not found, trying fallback selectors...")
+            fallback_selectors = [
+                (By.NAME, "UserName"),
+                (By.CSS_SELECTOR, "input[name='UserName']"),
+                (By.CSS_SELECTOR, "input[type='text']"),
+                (By.CSS_SELECTOR, "form#login-form input[type='text']"),
+            ]
+            username_field = None
+            for method, sel in fallback_selectors:
+                try:
+                    els = driver.find_elements(method, sel)
+                    if els:
+                        username_field = els[0]
+                        print(f"   ✅ Using fallback selector {method}={sel!r}")
+                        break
+                except Exception:
+                    continue
+            if username_field is None:
+                # Run diagnostic to capture state before raising
+                print("   ❌ Could not locate username field - running diagnostic")
+                debug_page(driver)
+                return False
+
         print("   ✅ Login form found")
-        
-        # Debug: print page source snippet if needed
-        # print(driver.page_source[:2000])
-        
-        username_field.clear()
-        username_field.send_keys(USERNAME)
-        print("   ✅ Username entered")
-        
-        password_field = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, "Password"))
-        )
+
+        # Fill username
+        try:
+            username_field.clear()
+            username_field.send_keys(USERNAME)
+            print("   ✅ Username entered")
+        except Exception as e:
+            print(f"   ❌ Username entry failed: {e}")
+            return False
+
+        # Fill password
+        try:
+            password_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "Password"))
+            )
+        except Exception:
+            try:
+                password_field = driver.find_element(By.NAME, "Password")
+            except Exception:
+                password_field = driver.find_element(By.CSS_SELECTOR, "input[type='password']")
         password_field.clear()
         password_field.send_keys(PASSWORD)
         print("   ✅ Password entered")
-        
-        login_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.ID, "btnLogin"))
-        )
+
+        # Click login button (try multiple selectors)
+        login_button = None
+        for method, sel in [
+            (By.ID, "btnLogin"),
+            (By.CSS_SELECTOR, "input#btnLogin"),
+            (By.CSS_SELECTOR, "input[type='submit']"),
+            (By.CSS_SELECTOR, "button[type='submit']"),
+        ]:
+            try:
+                els = driver.find_elements(method, sel)
+                if els:
+                    login_button = els[0]
+                    break
+            except Exception:
+                continue
+        if login_button is None:
+            print("   ❌ Login button not found")
+            debug_page(driver)
+            return False
+
         login_button.click()
         print("   ✅ Clicked login button")
-        
-        # Wait for navigation away from login page
-        WebDriverWait(driver, 20).until(
-            lambda d: "login" not in d.current_url.lower()
-        )
-        
-        print(f"   Current URL: {driver.current_url}")
-        
-        if "login" not in driver.current_url.lower():
+
+        # Wait for URL to change away from login
+        try:
+            WebDriverWait(driver, 20).until(
+                lambda d: "login" not in d.current_url.lower()
+            )
+        except Exception:
+            print("   ⚠️ URL still contains 'login' after timeout")
+            print(f"   Current URL: {driver.current_url}")
+
+        current_url = driver.current_url
+        print(f"   Current URL after login: {current_url}")
+
+        if "login" not in current_url.lower():
             print("✅ Login successful!")
             return True
         else:
             print("❌ Login failed - still on login page")
+            try:
+                driver.save_screenshot("login_error.png")
+                with open("login_error.html", "w", encoding="utf-8") as f:
+                    f.write(driver.page_source)
+                print("   💾 Debug files saved: login_error.png, login_error.html")
+            except Exception:
+                pass
             return False
-            
+
     except Exception as e:
         print(f"❌ Login error: {e}")
-        # Save screenshot and page source for debugging
+        import traceback
+        traceback.print_exc()
         try:
             driver.save_screenshot("login_error.png")
-            with open("login_error.html", "w") as f:
+            with open("login_error.html", "w", encoding="utf-8") as f:
                 f.write(driver.page_source)
-            print("   Debug files saved: login_error.png, login_error.html")
-        except:
+            print("   💾 Debug files saved: login_error.png, login_error.html")
+        except Exception:
             pass
         return False
+    finally:
+        # Always switch back to default content in case we entered an iframe
+        try:
+            driver.switch_to.default_content()
+        except Exception:
+            pass
+
 
 def get_class_capacity(class_name, class_type):
     """Determine class capacity based on class name/type"""
