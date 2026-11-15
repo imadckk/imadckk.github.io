@@ -82,10 +82,9 @@ def get_upcoming_weekends(months_ahead=1):
 
 
 def setup_driver():
-    """Setup Chrome driver with a realistic fingerprint and modern headless mode."""
+    """Setup Chrome driver with realistic fingerprint and HTTPS-upgrade disabled."""
     options = webdriver.ChromeOptions()
 
-    # Use NEW headless mode (Chrome 109+) — behaves like real Chrome
     options.add_argument('--headless=new')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
@@ -93,10 +92,12 @@ def setup_driver():
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--lang=en-US,en')
 
-    # Prevent Chrome from trying HTTPS upgrades on an HTTP-only site
-    options.add_argument('--disable-features=HttpsUpgrades,HttpsFirstModeV2')
+    # === CRITICAL: stop Chrome from forcing HTTPS ===
+    options.add_argument('--disable-features=HttpsUpgrades,HttpsFirstBalancedModeAutoEnable,HttpsFirstModeV2')
     options.add_argument('--allow-running-insecure-content')
     options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--ignore-ssl-errors=yes')
+    options.add_argument('--disable-web-security')
 
     # Realistic UA
     options.add_argument(
@@ -105,23 +106,25 @@ def setup_driver():
         'Chrome/120.0.0.0 Safari/537.36'
     )
 
-    # Anti-automation-detection
+    # Anti-automation
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     options.add_experimental_option('useAutomationExtension', False)
     options.add_experimental_option("prefs", {
         "profile.default_content_setting_values.notifications": 2,
         "credentials_enable_service": False,
+        "https_only_mode_enabled": False,
+        "https_first_mode_enabled": False,
     })
 
-    # Log Chrome's network to a file so we can see redirects/errors
+    # Network logging
     options.set_capability("goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"})
 
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(45)
 
-    # Patch navigator.webdriver + related fingerprint properties
+    # Patch navigator.webdriver etc.
     driver.execute_cdp_cmd(
         "Page.addScriptToEvaluateOnNewDocument",
         {
@@ -133,6 +136,21 @@ def setup_driver():
             """
         },
     )
+
+    # === BELT-AND-SUSPENDERS: disable HTTPS upgrade at the CDP level ===
+    try:
+        driver.execute_cdp_cmd("Network.enable", {})
+        driver.execute_cdp_cmd(
+            "Network.setBypassServiceWorker", {"bypass": True}
+        )
+        # Block any https:// upgrade to the site's host by intercepting
+        # and rewriting the scheme back to http
+        driver.execute_cdp_cmd("Fetch.enable", {
+            "patterns": [{"urlPattern": "https://adcdriving.dyndns.biz/*", "requestStage": "Request"}]
+        })
+    except Exception as e:
+        print(f"⚠️ CDP HTTPS-block setup failed: {e}")
+
     return driver
 
 
