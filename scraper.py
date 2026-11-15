@@ -89,48 +89,84 @@ def setup_driver():
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+    # Add these to help with compatibility
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    options.add_experimental_option('useAutomationExtension', False)
     
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
+    # Set page load timeout
+    driver.set_page_load_timeout(30)
     return driver
 
 def login_with_selenium(driver):
-    """Login using Selenium"""
+    """Login using Selenium with better waiting"""
     print("🔐 Attempting login with Selenium...")
     
     try:
-        driver.get(f"{BASE_URL}/star/User/Login")
-        print(f"   Page loaded: {driver.title}")
-        time.sleep(3)
+        login_url = f"{BASE_URL}/star/User/Login"
+        print(f"   Navigating to: {login_url}")
+        driver.get(login_url)
         
-        username_field = driver.find_element(By.ID, "UserName")
+        # Wait for page to load - check title or body
+        WebDriverWait(driver, 20).until(
+            lambda d: d.execute_script("return document.readyState") == "complete"
+        )
+        print(f"   Page loaded: {driver.title}")
+        print(f"   Current URL: {driver.current_url}")
+        
+        # Wait explicitly for the username field to be present
+        print("   Waiting for login form...")
+        username_field = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.ID, "UserName"))
+        )
+        print("   ✅ Login form found")
+        
+        # Debug: print page source snippet if needed
+        # print(driver.page_source[:2000])
+        
         username_field.clear()
         username_field.send_keys(USERNAME)
         print("   ✅ Username entered")
         
-        password_field = driver.find_element(By.ID, "Password")
+        password_field = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "Password"))
+        )
         password_field.clear()
         password_field.send_keys(PASSWORD)
         print("   ✅ Password entered")
         
-        login_button = driver.find_element(By.ID, "btnLogin")
+        login_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "btnLogin"))
+        )
         login_button.click()
         print("   ✅ Clicked login button")
         
-        time.sleep(5)
+        # Wait for navigation away from login page
+        WebDriverWait(driver, 20).until(
+            lambda d: "login" not in d.current_url.lower()
+        )
         
-        current_url = driver.current_url
-        print(f"   Current URL: {current_url}")
+        print(f"   Current URL: {driver.current_url}")
         
-        if "login" not in current_url.lower():
+        if "login" not in driver.current_url.lower():
             print("✅ Login successful!")
             return True
         else:
-            print("❌ Login failed")
+            print("❌ Login failed - still on login page")
             return False
             
     except Exception as e:
         print(f"❌ Login error: {e}")
+        # Save screenshot and page source for debugging
+        try:
+            driver.save_screenshot("login_error.png")
+            with open("login_error.html", "w") as f:
+                f.write(driver.page_source)
+            print("   Debug files saved: login_error.png, login_error.html")
+        except:
+            pass
         return False
 
 def get_class_capacity(class_name, class_type):
