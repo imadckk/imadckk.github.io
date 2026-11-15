@@ -220,102 +220,156 @@ def login_with_selenium(driver):
         return False
 
 def get_vocational_attendance_for_date(driver, search_date, url_path):
-    """Fetch vocational attendance for a specific date with retry logic"""
+    """Fetch vocational attendance for a specific date with retry logic + AJAX wait."""
     max_retries = 2
     for attempt in range(max_retries):
         try:
             formatted_date_input = search_date.strftime("%d/%m/%Y")
             day_name = search_date.strftime("%A")
             print(f"  🔍 Checking {formatted_date_input} ({day_name})...", end=" ", flush=True)
-            
+
             # Navigate to the page
             driver.get(f"{BASE_URL}{url_path}")
-            
-            # Wait for page to load
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-            
-            # Find and fill the date field
+
+            # Wait for the date field
             try:
-                date_field = WebDriverWait(driver, 10).until(
+                date_field = WebDriverWait(driver, 15).until(
                     EC.presence_of_element_located((By.ID, "lessonDate"))
                 )
-                date_field.clear()
-                date_field.send_keys(formatted_date_input)
-            except Exception as e:
-                print(f"date field error", end=" ")
+            except Exception:
+                print("date field error", end=" ")
                 return []
-            
-            # Click search button
+
+            # Fill the date (works whether it's a native input or a picker)
+            date_field.clear()
+            date_field.send_keys(formatted_date_input)
+
+            # Some ASP.NET MVC date pickers only commit on blur/change.
+            # Trigger both to be safe.
+            try:
+                date_field.send_keys(Keys.TAB)
+            except Exception:
+                pass
+            try:
+                driver.execute_script(
+                    "arguments[0].dispatchEvent(new Event('change', {bubbles: true}));",
+                    date_field,
+                )
+            except Exception:
+                pass
+
+            # Click search
             try:
                 search_button = driver.find_element(By.ID, "mySearchButton")
                 search_button.click()
-            except:
+            except Exception:
                 try:
                     search_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
                     search_button.click()
-                except:
+                except Exception:
                     print("no button", end=" ")
                     return []
-            
-            # Wait for results
-            time.sleep(2)
-            
-            # Parse the results
-            soup = BeautifulSoup(driver.page_source, 'html.parser')
+
+            # === KEY FIX: wait for the results table to actually populate ===
+            # The site uses an AJAX POST (see data-ajax-* on the detail links),
+            # so we can't just sleep — we must wait for either:
+            #   (a) #myClassListTable tbody to contain at least one <tr>, OR
+            #   (b) DataTables' "No data available" empty-state row, OR
+            #   (c) the network to go quiet for a short window.
+            got_rows = False
+            try:
+                WebDriverWait(driver, 15).until(
+                    lambda d: d.execute_script("""
+                        var tbody = document.querySelector('#myClassListTable tbody');
+                        if (!tbody) return false;
+                        var rows = tbody.querySelectorAll('tr');
+                        for (var i = 0; i < rows.length; i++) {
+                            var tds = rows[i].querySelectorAll('td');
+                            // DataTables empty state uses colspan
+                            if (tds.length === 1 && tds[0].getAttribute('colspan')) {
+                                return true; // empty-state shown
+                            }
+                            if (tds.length >= 4) {
+                                return true; // real data row
+                            }
+                        }
+                        return false;
+                    """)
+                )
+                got_rows = True
+            except TimeoutException:
+                got_rows = False
+
+            if not got_rows:
+                # Dump what the page looked like, so we can debug
+                print("table never populated", end=" ")
+                try:
+                    with open(f"debug_{search_date.strftime('%Y%m%d')}.html", "w", encoding="utf-8") as f:
+                        f.write(driver.page_source)
+                    driver.save_screenshot(f"debug_{search_date.strftime('%Y%m%d')}.png")
+                    print("(saved debug_*.html/png)", end=" ")
+                except Exception:
+                    pass
+                return []
+
+            # Small extra wait for DataTables JS to finish binding
+            time.sleep(0.5)
+
+            # === Parse the populated table ===
+            soup = BeautifulSoup(driver.page_source, "html.parser")
             records = []
-            
-            # Find all tables
-            tables = soup.find_all('table')
-            
-            for table in tables:
-                rows = table.find_all('tr')
-                for row in rows:
-                    if row.find('th'):
+
+            # Prefer the specific table by id; fall back to any table if absent
+            table = soup.find("table", id="myClassListTable")
+            tables = [table] if table else soup.find_all("table")
+
+            for tbl in tables:
+                body = tbl.find("tbody")
+                if not body:
+                    continue
+                for row in body.find_all("tr"):
+                    cells = row.find_all("td")
+                    if len(cells) < 5:
+                        continue  # empty-state row uses 1 cell w/ colspan
+
+                    booking_id   = cells[0].get_text(strip=True)  # Booking ID
+                    process      = cells[1].get_text(strip=True)  # Process (PSV II / GDL II)
+                    date_str     = cells[2].get_text(strip=True)  # Lesson Date
+                    class_name   = cells[3].get_text(strip=True)  # Class Name
+                    booking_cnt  = cells[4].get_text(strip=True)  # Booking
+                    in_cnt       = cells[5].get_text(strip=True) if len(cells) > 5 else "0"  # In (present)
+                    out_cnt      = cells[6].get_text(strip=True) if len(cells) > 6 else "0"  # Out
+
+                    # Validation: numeric booking id, DD/MM/YYYY date
+                    if not booking_id or not booking_id.isdigit():
                         continue
-                    
-                    cells = row.find_all('td')
-                    if len(cells) >= 5:
-                        class_id = cells[0].get_text(strip=True) if len(cells) > 0 else ""
-                        class_code = cells[1].get_text(strip=True) if len(cells) > 1 else ""
-                        date_str = cells[2].get_text(strip=True) if len(cells) > 2 else ""
-                        class_name = cells[3].get_text(strip=True) if len(cells) > 3 else ""
-                        present_count = cells[4].get_text(strip=True) if len(cells) > 4 else "0"
-                        
-                        # Skip if no valid class ID
-                        if not class_id or not class_id.isdigit():
-                            continue
-                        
-                        # Validate date format (should be DD/MM/YYYY)
-                        if not re.match(r'\d{2}/\d{2}/\d{4}', date_str):
-                            continue
-                        
-                        # Parse present count
-                        try:
-                            present_num = int(present_count) if present_count.isdigit() else 0
-                        except:
-                            present_num = 0
-                        
-                        records.append({
-                            'date': date_str,
-                            'class_id': class_id,
-                            'class_name': class_name,
-                            'class_code': class_code,
-                            'present_count': str(present_num),
-                            'total_students': str(VOCATIONAL_CAPACITY)
-                        })
-            
+                    if not re.match(r"^\d{2}/\d{2}/\d{4}$", date_str):
+                        continue
+
+                    def to_int(s):
+                        s = (s or "").strip()
+                        return int(s) if s.isdigit() else 0
+
+                    records.append({
+                        "date": date_str,
+                        "class_id": booking_id,
+                        "class_code": process,           # "PSV II" / "GDL II"
+                        "class_name": class_name,        # "E-hailing ll" etc.
+                        "present_count": str(to_int(in_cnt)),     # In (present)
+                        "booked_count": str(to_int(booking_cnt)), # Booking
+                        "out_count": str(to_int(out_cnt)),
+                        "total_students": str(VOCATIONAL_CAPACITY),
+                    })
+
             if records:
                 print(f"✅ Found {len(records)} class(es)")
             else:
                 print(f"📭 No classes")
-            
             return records
-            
+
         except Exception as e:
             if attempt < max_retries - 1:
-                print(f"⚠️ Attempt {attempt + 1} failed, retrying...")
+                print(f"⚠️ Attempt {attempt + 1} failed ({e}), retrying...")
                 time.sleep(2)
             else:
                 print(f"❌ Error: {e}")
