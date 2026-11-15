@@ -82,20 +82,30 @@ def get_upcoming_weekends(months_ahead=1):
 
 
 def setup_driver():
-    """Setup Chrome driver with a realistic browser fingerprint."""
+    """Setup Chrome driver with a realistic fingerprint and modern headless mode."""
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless=new')          # new headless is much closer to real Chrome
+
+    # Use NEW headless mode (Chrome 109+) — behaves like real Chrome
+    options.add_argument('--headless=new')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
     options.add_argument('--disable-gpu')
     options.add_argument('--window-size=1920,1080')
     options.add_argument('--lang=en-US,en')
+
+    # Prevent Chrome from trying HTTPS upgrades on an HTTP-only site
+    options.add_argument('--disable-features=HttpsUpgrades,HttpsFirstModeV2')
+    options.add_argument('--allow-running-insecure-content')
+    options.add_argument('--ignore-certificate-errors')
+
+    # Realistic UA
     options.add_argument(
         '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
         'AppleWebKit/537.36 (KHTML, like Gecko) '
         'Chrome/120.0.0.0 Safari/537.36'
     )
-    # Reduce automation fingerprints
+
+    # Anti-automation-detection
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
     options.add_experimental_option('useAutomationExtension', False)
@@ -104,12 +114,14 @@ def setup_driver():
         "credentials_enable_service": False,
     })
 
+    # Log Chrome's network to a file so we can see redirects/errors
+    options.set_capability("goog:loggingPrefs", {"browser": "ALL", "performance": "ALL"})
+
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
     driver.set_page_load_timeout(45)
-    driver.implicitly_wait(0)
 
-    # Patch navigator.webdriver so it looks like a normal browser
+    # Patch navigator.webdriver + related fingerprint properties
     driver.execute_cdp_cmd(
         "Page.addScriptToEvaluateOnNewDocument",
         {
@@ -117,6 +129,7 @@ def setup_driver():
                 Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
                 Object.defineProperty(navigator, 'languages', {get: () => ['en-US','en']});
                 Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+                window.chrome = window.chrome || {runtime: {}};
             """
         },
     )
@@ -241,6 +254,39 @@ def debug_page(driver):
         except Exception:
             pass
 
+def dump_network_logs(driver, label="network"):
+    """Print Chrome's network + browser console logs."""
+    try:
+        perf = driver.get_log("performance")
+    except Exception:
+        perf = []
+    try:
+        browser = driver.get_log("browser")
+    except Exception:
+        browser = []
+
+    print(f"\n--- {label} (browser console) ---")
+    for entry in browser:
+        print(f"  [{entry.get('level')}] {entry.get('message')}")
+
+    print(f"--- {label} (network events) ---")
+    for entry in perf:
+        try:
+            msg = json.loads(entry["message"])["message"]
+        except Exception:
+            continue
+        method = msg.get("method")
+        params = msg.get("params", {})
+        if method == "Network.responseReceived":
+            resp = params.get("response", {})
+            print(f"  RESP {resp.get('status')} {resp.get('url')}")
+        elif method == "Network.requestWillBeSent":
+            req = params.get("request", {})
+            print(f"  REQ  {req.get('method')} {req.get('url')}")
+        elif method == "Network.loadingFailed":
+            print(f"  FAIL {params.get('errorText')} (type={params.get('type')})")
+    print("--- end ---\n")
+
 
 def login_with_selenium(driver):
     """Login using Selenium with robust element waiting and diagnostics."""
@@ -261,6 +307,10 @@ def login_with_selenium(driver):
 
         print(f"   Page loaded: {driver.title}")
         print(f"   Current URL: {driver.current_url}")
+
+        dump_network_logs(driver, "after-navigation")
+        print(f"   Page source length in Selenium: {len(driver.page_source)}")
+        print(f"   First 200 chars: {driver.page_source[:200]!r}")
 
         # Give client-side rendering a short grace period
         time.sleep(2)
