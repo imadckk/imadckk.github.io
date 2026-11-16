@@ -228,10 +228,8 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
             day_name = search_date.strftime("%A")
             print(f"  🔍 Checking {formatted_date_input} ({day_name})...", end=" ", flush=True)
 
-            # Navigate to the page
             driver.get(f"{BASE_URL}{url_path}")
 
-            # Wait for the date field
             try:
                 date_field = WebDriverWait(driver, 15).until(
                     EC.presence_of_element_located((By.ID, "lessonDate"))
@@ -240,11 +238,8 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                 print("date field error", end=" ")
                 return []
 
-            # Fill the date (works whether it's a native input or a picker)
             date_field.clear()
             date_field.send_keys(formatted_date_input)
-
-            # Some ASP.NET MVC date pickers only commit on blur/change.
             try:
                 date_field.send_keys(Keys.TAB)
             except Exception:
@@ -257,7 +252,6 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
             except Exception:
                 pass
 
-            # Click search
             try:
                 search_button = driver.find_element(By.ID, "mySearchButton")
                 search_button.click()
@@ -269,48 +263,73 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     print("no button", end=" ")
                     return []
 
-            # === Date-aware wait helpers (closures over formatted_date_input) ===
-            def table_has_rows_for_date(d):
-                """True only when tbody has a real row whose date cell == target."""
+            # === JS wait that EXACTLY mirrors the Python parser predicate ===
+            def table_state(d):
+                """
+                Returns:
+                  "rows"   -> >=1 row that passes the parser predicate for target date
+                  "empty"  -> DataTables empty-state row present AND no matching rows
+                  "stale"  -> only rows for a different date (still loading)
+                  "none"   -> tbody not present yet
+                """
                 return d.execute_script("""
                     var target = arguments[0];
                     var tbody = document.querySelector('#myClassListTable tbody');
-                    if (!tbody) return false;
+                    if (!tbody) return 'none';
+
                     var rows = tbody.querySelectorAll('tr');
-                    if (rows.length === 0) return false;
+                    var sawEmpty = false;
+
                     for (var i = 0; i < rows.length; i++) {
                         var tds = rows[i].querySelectorAll('td');
-                        // Skip empty-state row
-                        if (tds.length === 1 && tds[0].getAttribute('colspan')) continue;
-                        for (var j = 0; j < tds.length; j++) {
-                            var t = (tds[j].textContent || '').replace(/\\s+/g, '');
-                            if (t === target) return true;
+
+                        // DataTables empty-state: single td with colspan
+                        if (tds.length === 1 && tds[0].getAttribute('colspan')) {
+                            sawEmpty = true;
+                            continue;
                         }
+
+                        // Must be a real data row (7 data cols + optional Detail)
+                        if (tds.length < 7) continue;
+
+                        var booking = (tds[0].textContent || '').replace(/\\s+/g, '');
+                        var dtext   = (tds[2].textContent || '').replace(/\\s+/g, '');
+
+                        // Same checks as Python:
+                        if (!/^\\d+$/.test(booking)) continue;
+                        if (!/^\\d{1,2}\\/\\d{1,2}\\/\\d{4}$/.test(dtext)) continue;
+                        if (dtext !== target) continue;
+
+                        return 'rows';
                     }
-                    return false;
+
+                    // No matching rows. Distinguish empty-state vs still-loading.
+                    if (sawEmpty) {
+                        // If ANY other real row exists, this empty-state is suspicious
+                        // (DataTables sometimes shows it mid-render) — but if it's the
+                        // only row, treat it as authoritative.
+                        for (var i = 0; i < rows.length; i++) {
+                            var tds = rows[i].querySelectorAll('td');
+                            if (tds.length >= 7) return 'stale';
+                        }
+                        return 'empty';
+                    }
+                    return 'stale';
                 """, formatted_date_input)
 
-            def table_shows_empty_state(d):
-                """True only when DataTables has rendered its 'No data' row."""
-                return d.execute_script("""
-                    var tbody = document.querySelector('#myClassListTable tbody');
-                    if (!tbody) return false;
-                    var rows = tbody.querySelectorAll('tr');
-                    if (rows.length === 0) return false;
-                    for (var i = 0; i < rows.length; i++) {
-                        var tds = rows[i].querySelectorAll('td');
-                        if (tds.length === 1 && tds[0].getAttribute('colspan')) return true;
-                    }
-                    return false;
-                """)
-
-            # Wait for AJAX to actually replace the table for THIS date
+            # Wait for the table to reach a terminal state
+            final_state = None
             try:
-                WebDriverWait(driver, 25).until(
-                    lambda d: table_has_rows_for_date(d) or table_shows_empty_state(d)
-                )
+                def is_terminal(d):
+                    nonlocal final_state
+                    final_state = table_state(d)
+                    return final_state in ('rows', 'empty')
+
+                WebDriverWait(driver, 25).until(is_terminal)
             except TimeoutException:
-                print("table never populated (no rows or empty-state)", end=" ")
+                # On timeout, re-read state to report the actual problem
+                final_state = table_state(driver)
+                print(f"table never resolved (state={final_state})", end=" ")
                 try:
                     with open(f"debug_{search_date.strftime('%Y%m%d')}.html", "w", encoding="utf-8") as f:
                         f.write(driver.page_source)
@@ -320,10 +339,14 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     pass
                 return []
 
-            # Settle time so DataTables finishes rendering the matched rows
-            time.sleep(0.4)
+            if final_state == 'empty':
+                print("📭 No classes")
+                return []
 
-            # === Parse the populated table ===
+            # final_state == 'rows'
+            time.sleep(0.3)  # let DataTables finish any minor re-render
+
+            # === Parse (must produce >=1 record, since wait said 'rows') ===
             soup = BeautifulSoup(driver.page_source, "html.parser")
             records = []
 
@@ -336,7 +359,6 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     continue
                 for row in body.find_all("tr"):
                     cells = row.find_all("td")
-                    # Need Booking ID..Out = 7 columns (Detail is optional 8th)
                     if len(cells) < 7:
                         continue
 
@@ -348,13 +370,11 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     in_cnt      = cells[5].get_text(strip=True)
                     out_cnt     = cells[6].get_text(strip=True)
 
-                    # Normalize & validate
                     date_str_clean = re.sub(r"\s+", "", date_str)
-                    if not booking_id or not booking_id.isdigit():
+                    if not booking_id.isdigit():
                         continue
                     if not re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", date_str_clean):
                         continue
-                    # Defensive: only accept rows for the date we searched
                     if date_str_clean != formatted_date_input:
                         continue
 
@@ -365,10 +385,10 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     records.append({
                         "date": date_str_clean,
                         "class_id": booking_id,
-                        "class_code": process,            # "PSV II" / "GDL II"
-                        "class_name": class_name,         # "E-hailing ll" etc.
-                        "present_count": str(to_int(in_cnt)),      # In (present)
-                        "booked_count": str(to_int(booking_cnt)),  # Booking
+                        "class_code": process,
+                        "class_name": class_name,
+                        "present_count": str(to_int(in_cnt)),
+                        "booked_count": str(to_int(booking_cnt)),
                         "out_count": str(to_int(out_cnt)),
                         "total_students": str(VOCATIONAL_CAPACITY),
                     })
@@ -376,9 +396,8 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
             if records:
                 print(f"✅ Found {len(records)} class(es)")
             else:
-                # The wait matched "rows exist for this date" but parse dropped them
-                # -> would indicate a real regression worth investigating
-                print(f"⚠️ Wait matched but parse yielded 0 (check debug)")
+                # Should be unreachable now — log loudly if it happens
+                print(f"⚠️ BUG: wait said 'rows' but parser yielded 0")
                 try:
                     with open(f"debug_parse_{search_date.strftime('%Y%m%d')}.html", "w", encoding="utf-8") as f:
                         f.write(driver.page_source)
@@ -479,36 +498,37 @@ def save_vocational_data(categorized_data):
     with open('vocational.json', 'w') as f:
         json.dump(output, f, indent=2)
     
-    print(f"\n💾 Saved vocational data to vocational.json")
-    
-    # Print summary
-    print("\n📊 VOCATIONAL SUMMARY (Weekdays Only, 1 Month Ahead):")
-    print("=" * 60)
-    total = 0
-    for category in ['e-Hailing', 'Bas Mini', 'GDL']:
-        count = len(categorized_data[category])
-        total += count
-        if count > 0:
-            print(f"\n🚗 {category.upper()}: {count} class(es)")
-            for record in categorized_data[category]:
-                present = int(record['present_count'])
-                total_cap = int(record['total_students'])
-                # Parse date to show day name
-                try:
-                    date_obj = datetime.strptime(record['date'], '%d/%m/%Y')
-                    day_name = date_obj.strftime('%A')
-                    date_display = f"{record['date']} ({day_name})"
-                except:
-                    date_display = record['date']
-                
-                status = f"{present}/{total_cap}"
-                if present == total_cap and total_cap > 0:
-                    status += " 🔴 FULL"
-                print(f"   📅 {date_display} - {record['class_name']}: {status}")
-    
-    if total == 0:
-        print("\n📭 No upcoming vocational classes found in the next month")
+        print(f"\n💾 Saved vocational data to vocational.json")
 
+        # Print summary
+        print("\n📊 VOCATIONAL SUMMARY (Weekdays Only, 1 Month Ahead):")
+        print("=" * 60)
+        total = 0
+        for category in ['e-Hailing', 'Bas Mini', 'GDL']:
+            count = len(categorized_data[category])
+            total += count
+            if count > 0:
+                print(f"\n🚗 {category.upper()}: {count} class(es)")
+                for record in categorized_data[category]:
+                    booked    = int(record['booked_count'])
+                    total_cap = int(record['total_students'])
+    
+                    # Parse date to show day name
+                    try:
+                        date_obj = datetime.strptime(record['date'], '%d/%m/%Y')
+                        day_name = date_obj.strftime('%A')
+                        date_display = f"{record['date']} ({day_name})"
+                    except Exception:
+                        date_display = record['date']
+    
+                    status = f"{booked}/{total_cap}"
+                    if booked >= total_cap and total_cap > 0:
+                        status += " 🔴 FULL"
+                    print(f"   📅 {date_display} - {record['class_name']}: {status}")
+    
+        if total == 0:
+            print("\n📭 No upcoming vocational classes found in the next month")
+        
 def main():
     print("🚀 Vocational Attendance Scraper (Weekdays Only + 1 Month Ahead)")
     print("=" * 60)
