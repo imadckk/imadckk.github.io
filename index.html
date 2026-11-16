@@ -858,74 +858,66 @@
 
     function renderVocationalTables() {
       const container = document.getElementById('vocationalContent');
-      
-      // Check if any category has data
+    
       const hasData = Object.values(vocationalData).some(arr => arr.length > 0);
-      
       if (!hasData) {
         container.innerHTML = '<div class="vocational-no-data">📭 No upcoming vocational classes found.</div>';
         return;
       }
-      
+    
       let html = '';
-      
-      // Category configurations
+    
       const categories = [
-        { key: 'e-Hailing', title: ' E-HAILING', icon: '🚕', color: '#28a745' },
-        { key: 'Bas Mini', title: ' BAS MINI', icon: '🚌', color: '#17a2b8' },
-        { key: 'GDL', title: ' GDL', icon: '🚚', color: '#fd7e14' }
+        { key: 'e-Hailing', title: 'E-HAILING', icon: '🚕' },
+        { key: 'Bas Mini',  title: 'BAS MINI',  icon: '🚌' },
+        { key: 'GDL',       title: 'GDL',       icon: '🚚' }
       ];
-      
+    
       for (const category of categories) {
         const classes = vocationalData[category.key];
-        
-        if (classes && classes.length > 0) {
+        if (!classes || classes.length === 0) continue;
+    
+        html += `
+          <div class="vocational-section">
+            <h5>${category.icon} ${category.title}</h5>
+            <div class="table-responsive">
+              <table class="table table-sm vocational-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Class Name</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+        `;
+    
+        for (const cls of classes) {
+          // OPTION A: bookings vs capacity
+          const booked = parseInt(cls.booked_count) || 0;
+          const total  = parseInt(cls.total_students) || 50;
+          const isFull = booked >= total && total > 0;
+    
+          const statusClass = isFull ? 'status-full' : '';
+          const fullIcon    = isFull ? ' 🔴 FULL' : '';
+    
+          // DD/MM/YYYY -> DD/MM/YY
+          const formattedDate = cls.date.substring(0, 6) + cls.date.substring(8, 10);
+    
           html += `
-            <div class="vocational-section">
-              <h5>${category.icon} ${category.title}</h5>
-              <div class="table-responsive">
-                <table class="table table-sm vocational-table">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Class Name</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-          `;
-          
-          for (const cls of classes) {
-            const present = parseInt(cls.present_count) || 0;
-            const total = parseInt(cls.total_students) || 50;
-            const isFull = present === total && total > 0;
-            const statusClass = isFull ? 'status-full' : '';
-            const fullIcon = isFull ? ' 🔴' : '';
-            
-            // Format date from DD/MM/YYYY to DD/MM/YY
-            const formattedDate = cls.date.substring(0, 8) + cls.date.substring(8, 10);
-            
-            html += `
-              <tr>
-                <td>${formattedDate}</td>
-                <td>${cls.class_name}</td>
-                <td class="${statusClass}">${present}/${total}${fullIcon}</td>
-              </tr>
-            `;
-          }
-          
-          html += `
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <tr>
+              <td>${formattedDate}</td>
+              <td>${cls.class_name}</td>
+              <td class="${statusClass}">${booked}/${total}${fullIcon}</td>
+            </tr>
           `;
         }
+    
+        html += `</tbody></table></div></div>`;
       }
-      
+    
       container.innerHTML = html;
     }
-
     // Load vocational data when its tab is shown
     document.getElementById('vocational-tab').addEventListener('shown.bs.tab', () => {
       loadVocationalData();
