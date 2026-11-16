@@ -220,7 +220,7 @@ def login_with_selenium(driver):
         return False
 
 def get_vocational_attendance_for_date(driver, search_date, url_path):
-    """Fetch vocational attendance for a specific date with retry logic + AJAX wait."""
+    """Fetch vocational attendance for a specific date with date-aware AJAX wait."""
     max_retries = 2
     for attempt in range(max_retries):
         try:
@@ -245,7 +245,6 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
             date_field.send_keys(formatted_date_input)
 
             # Some ASP.NET MVC date pickers only commit on blur/change.
-            # Trigger both to be safe.
             try:
                 date_field.send_keys(Keys.TAB)
             except Exception:
@@ -270,39 +269,48 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     print("no button", end=" ")
                     return []
 
-            # === KEY FIX: wait for the results table to actually populate ===
-            # The site uses an AJAX POST (see data-ajax-* on the detail links),
-            # so we can't just sleep — we must wait for either:
-            #   (a) #myClassListTable tbody to contain at least one <tr>, OR
-            #   (b) DataTables' "No data available" empty-state row, OR
-            #   (c) the network to go quiet for a short window.
-            got_rows = False
-            try:
-                WebDriverWait(driver, 15).until(
-                    lambda d: d.execute_script("""
-                        var tbody = document.querySelector('#myClassListTable tbody');
-                        if (!tbody) return false;
-                        var rows = tbody.querySelectorAll('tr');
-                        for (var i = 0; i < rows.length; i++) {
-                            var tds = rows[i].querySelectorAll('td');
-                            // DataTables empty state uses colspan
-                            if (tds.length === 1 && tds[0].getAttribute('colspan')) {
-                                return true; // empty-state shown
-                            }
-                            if (tds.length >= 4) {
-                                return true; // real data row
-                            }
+            # === Date-aware wait helpers (closures over formatted_date_input) ===
+            def table_has_rows_for_date(d):
+                """True only when tbody has a real row whose date cell == target."""
+                return d.execute_script("""
+                    var target = arguments[0];
+                    var tbody = document.querySelector('#myClassListTable tbody');
+                    if (!tbody) return false;
+                    var rows = tbody.querySelectorAll('tr');
+                    if (rows.length === 0) return false;
+                    for (var i = 0; i < rows.length; i++) {
+                        var tds = rows[i].querySelectorAll('td');
+                        // Skip empty-state row
+                        if (tds.length === 1 && tds[0].getAttribute('colspan')) continue;
+                        for (var j = 0; j < tds.length; j++) {
+                            var t = (tds[j].textContent || '').replace(/\\s+/g, '');
+                            if (t === target) return true;
                         }
-                        return false;
-                    """)
-                )
-                got_rows = True
-            except TimeoutException:
-                got_rows = False
+                    }
+                    return false;
+                """, formatted_date_input)
 
-            if not got_rows:
-                # Dump what the page looked like, so we can debug
-                print("table never populated", end=" ")
+            def table_shows_empty_state(d):
+                """True only when DataTables has rendered its 'No data' row."""
+                return d.execute_script("""
+                    var tbody = document.querySelector('#myClassListTable tbody');
+                    if (!tbody) return false;
+                    var rows = tbody.querySelectorAll('tr');
+                    if (rows.length === 0) return false;
+                    for (var i = 0; i < rows.length; i++) {
+                        var tds = rows[i].querySelectorAll('td');
+                        if (tds.length === 1 && tds[0].getAttribute('colspan')) return true;
+                    }
+                    return false;
+                """)
+
+            # Wait for AJAX to actually replace the table for THIS date
+            try:
+                WebDriverWait(driver, 25).until(
+                    lambda d: table_has_rows_for_date(d) or table_shows_empty_state(d)
+                )
+            except TimeoutException:
+                print("table never populated (no rows or empty-state)", end=" ")
                 try:
                     with open(f"debug_{search_date.strftime('%Y%m%d')}.html", "w", encoding="utf-8") as f:
                         f.write(driver.page_source)
@@ -312,14 +320,13 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     pass
                 return []
 
-            # Small extra wait for DataTables JS to finish binding
-            time.sleep(0.5)
+            # Settle time so DataTables finishes rendering the matched rows
+            time.sleep(0.4)
 
             # === Parse the populated table ===
             soup = BeautifulSoup(driver.page_source, "html.parser")
             records = []
 
-            # Prefer the specific table by id; fall back to any table if absent
             table = soup.find("table", id="myClassListTable")
             tables = [table] if table else soup.find_all("table")
 
@@ -329,21 +336,26 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     continue
                 for row in body.find_all("tr"):
                     cells = row.find_all("td")
-                    if len(cells) < 5:
-                        continue  # empty-state row uses 1 cell w/ colspan
+                    # Need Booking ID..Out = 7 columns (Detail is optional 8th)
+                    if len(cells) < 7:
+                        continue
 
-                    booking_id   = cells[0].get_text(strip=True)  # Booking ID
-                    process      = cells[1].get_text(strip=True)  # Process (PSV II / GDL II)
-                    date_str     = cells[2].get_text(strip=True)  # Lesson Date
-                    class_name   = cells[3].get_text(strip=True)  # Class Name
-                    booking_cnt  = cells[4].get_text(strip=True)  # Booking
-                    in_cnt       = cells[5].get_text(strip=True) if len(cells) > 5 else "0"  # In (present)
-                    out_cnt      = cells[6].get_text(strip=True) if len(cells) > 6 else "0"  # Out
+                    booking_id  = cells[0].get_text(strip=True)
+                    process     = cells[1].get_text(strip=True)
+                    date_str    = cells[2].get_text(strip=True)
+                    class_name  = cells[3].get_text(strip=True)
+                    booking_cnt = cells[4].get_text(strip=True)
+                    in_cnt      = cells[5].get_text(strip=True)
+                    out_cnt     = cells[6].get_text(strip=True)
 
-                    # Validation: numeric booking id, DD/MM/YYYY date
+                    # Normalize & validate
+                    date_str_clean = re.sub(r"\s+", "", date_str)
                     if not booking_id or not booking_id.isdigit():
                         continue
-                    if not re.match(r"^\d{2}/\d{2}/\d{4}$", date_str):
+                    if not re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", date_str_clean):
+                        continue
+                    # Defensive: only accept rows for the date we searched
+                    if date_str_clean != formatted_date_input:
                         continue
 
                     def to_int(s):
@@ -351,12 +363,12 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                         return int(s) if s.isdigit() else 0
 
                     records.append({
-                        "date": date_str,
+                        "date": date_str_clean,
                         "class_id": booking_id,
-                        "class_code": process,           # "PSV II" / "GDL II"
-                        "class_name": class_name,        # "E-hailing ll" etc.
-                        "present_count": str(to_int(in_cnt)),     # In (present)
-                        "booked_count": str(to_int(booking_cnt)), # Booking
+                        "class_code": process,            # "PSV II" / "GDL II"
+                        "class_name": class_name,         # "E-hailing ll" etc.
+                        "present_count": str(to_int(in_cnt)),      # In (present)
+                        "booked_count": str(to_int(booking_cnt)),  # Booking
                         "out_count": str(to_int(out_cnt)),
                         "total_students": str(VOCATIONAL_CAPACITY),
                     })
@@ -364,7 +376,14 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
             if records:
                 print(f"✅ Found {len(records)} class(es)")
             else:
-                print(f"📭 No classes")
+                # The wait matched "rows exist for this date" but parse dropped them
+                # -> would indicate a real regression worth investigating
+                print(f"⚠️ Wait matched but parse yielded 0 (check debug)")
+                try:
+                    with open(f"debug_parse_{search_date.strftime('%Y%m%d')}.html", "w", encoding="utf-8") as f:
+                        f.write(driver.page_source)
+                except Exception:
+                    pass
             return records
 
         except Exception as e:
