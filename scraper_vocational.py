@@ -220,7 +220,11 @@ def login_with_selenium(driver):
         return False
 
 def get_vocational_attendance_for_date(driver, search_date, url_path):
-    """Fetch vocational attendance for a specific date with date-aware AJAX wait."""
+    """Fetch vocational attendance for a specific date — race-free.
+
+    Uses a single JS read (execute_script) to both wait for and extract rows,
+    so there is no gap between the wait predicate and the parse predicate.
+    """
     max_retries = 2
     for attempt in range(max_retries):
         try:
@@ -230,6 +234,7 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
 
             driver.get(f"{BASE_URL}{url_path}")
 
+            # Wait for the date field
             try:
                 date_field = WebDriverWait(driver, 15).until(
                     EC.presence_of_element_located((By.ID, "lessonDate"))
@@ -252,84 +257,107 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
             except Exception:
                 pass
 
+            # Click search
             try:
-                search_button = driver.find_element(By.ID, "mySearchButton")
-                search_button.click()
+                driver.find_element(By.ID, "mySearchButton").click()
             except Exception:
                 try:
-                    search_button = driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
-                    search_button.click()
+                    driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
                 except Exception:
                     print("no button", end=" ")
                     return []
 
-            # === JS wait that EXACTLY mirrors the Python parser predicate ===
-            def table_state(d):
-                """
-                Returns:
-                  "rows"   -> >=1 row that passes the parser predicate for target date
-                  "empty"  -> DataTables empty-state row present AND no matching rows
-                  "stale"  -> only rows for a different date (still loading)
-                  "none"   -> tbody not present yet
-                """
-                return d.execute_script("""
-                    var target = arguments[0];
-                    var tbody = document.querySelector('#myClassListTable tbody');
-                    if (!tbody) return 'none';
+            # === Single JS routine: wait until terminal, then extract rows ===
+            # Returns:
+            #   {"state": "rows",  "records": [...]}   -> parse succeeded
+            #   {"state": "empty", "records": []}      -> authoritative no-rows
+            #   {"state": "stale"|"none", "records": []} -> keep waiting
+            JS_EXTRACT = r"""
+            var target = arguments[0];
+            var tbody = document.querySelector('#myClassListTable tbody');
+            if (!tbody) return {state: 'none', records: []};
 
-                    var rows = tbody.querySelectorAll('tr');
-                    var sawEmpty = false;
+            var rows = tbody.querySelectorAll('tr');
+            var sawEmpty = false;
+            var sawOtherReal = false;
+            var records = [];
 
-                    for (var i = 0; i < rows.length; i++) {
-                        var tds = rows[i].querySelectorAll('td');
+            function norm(s) {
+                // Strip ALL whitespace incl. NBSP (\u00A0)
+                return (s || '').replace(/[\s\u00A0]+/g, '');
+            }
 
-                        // DataTables empty-state: single td with colspan
-                        if (tds.length === 1 && tds[0].getAttribute('colspan')) {
-                            sawEmpty = true;
-                            continue;
-                        }
+            for (var i = 0; i < rows.length; i++) {
+                var tds = rows[i].querySelectorAll('td');
 
-                        // Must be a real data row (7 data cols + optional Detail)
-                        if (tds.length < 7) continue;
+                // Empty-state row
+                if (tds.length === 1 && tds[0].getAttribute('colspan')) {
+                    sawEmpty = true;
+                    continue;
+                }
 
-                        var booking = (tds[0].textContent || '').replace(/\\s+/g, '');
-                        var dtext   = (tds[2].textContent || '').replace(/\\s+/g, '');
+                // Real data row needs >= 7 cells (Booking..Out)
+                if (tds.length < 7) {
+                    sawOtherReal = true;
+                    continue;
+                }
+                sawOtherReal = true;
 
-                        // Same checks as Python:
-                        if (!/^\\d+$/.test(booking)) continue;
-                        if (!/^\\d{1,2}\\/\\d{1,2}\\/\\d{4}$/.test(dtext)) continue;
-                        if (dtext !== target) continue;
+                var booking  = norm(tds[0].textContent);
+                var process  = (tds[1].textContent || '').trim();
+                var dtext    = norm(tds[2].textContent);
+                var cname    = (tds[3].textContent || '').trim();
+                var booked   = norm(tds[4].textContent);
+                var incnt    = norm(tds[5].textContent);
+                var outcnt   = norm(tds[6].textContent);
 
-                        return 'rows';
-                    }
+                if (!/^\d+$/.test(booking)) continue;
+                if (!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dtext)) continue;
+                if (dtext !== target) continue;
 
-                    // No matching rows. Distinguish empty-state vs still-loading.
-                    if (sawEmpty) {
-                        // If ANY other real row exists, this empty-state is suspicious
-                        // (DataTables sometimes shows it mid-render) — but if it's the
-                        // only row, treat it as authoritative.
-                        for (var i = 0; i < rows.length; i++) {
-                            var tds = rows[i].querySelectorAll('td');
-                            if (tds.length >= 7) return 'stale';
-                        }
-                        return 'empty';
-                    }
-                    return 'stale';
-                """, formatted_date_input)
+                records.push({
+                    date: dtext,
+                    class_id: booking,
+                    class_code: process,
+                    class_name: cname,
+                    present_count: incnt || '0',
+                    booked_count: booked || '0',
+                    out_count: outcnt || '0'
+                });
+            }
 
-            # Wait for the table to reach a terminal state
-            final_state = None
+            if (records.length > 0) {
+                return {state: 'rows', records: records};
+            }
+            if (sawEmpty && !sawOtherReal) {
+                return {state: 'empty', records: []};
+            }
+            // Either still loading, or rows exist for other dates
+            return {state: 'stale', records: []};
+            """
+
+            # Poll the same JS until it returns rows/empty
+            final = None
             try:
-                def is_terminal(d):
-                    nonlocal final_state
-                    final_state = table_state(d)
-                    return final_state in ('rows', 'empty')
+                def _poll(d):
+                    nonlocal final
+                    try:
+                        r = d.execute_script(JS_EXTRACT, formatted_date_input)
+                    except Exception:
+                        return False
+                    if r and r.get("state") in ("rows", "empty"):
+                        final = r
+                        return True
+                    return False
 
-                WebDriverWait(driver, 25).until(is_terminal)
+                WebDriverWait(driver, 25, poll_frequency=0.4).until(_poll)
             except TimeoutException:
-                # On timeout, re-read state to report the actual problem
-                final_state = table_state(driver)
-                print(f"table never resolved (state={final_state})", end=" ")
+                try:
+                    r = driver.execute_script(JS_EXTRACT, formatted_date_input)
+                    state = (r or {}).get("state", "none")
+                except Exception:
+                    state = "none"
+                print(f"table never resolved (state={state})", end=" ")
                 try:
                     with open(f"debug_{search_date.strftime('%Y%m%d')}.html", "w", encoding="utf-8") as f:
                         f.write(driver.page_source)
@@ -339,70 +367,33 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
                     pass
                 return []
 
-            if final_state == 'empty':
+            if final["state"] == "empty":
                 print("📭 No classes")
                 return []
 
-            # final_state == 'rows'
-            time.sleep(0.3)  # let DataTables finish any minor re-render
-
-            # === Parse (must produce >=1 record, since wait said 'rows') ===
-            soup = BeautifulSoup(driver.page_source, "html.parser")
+            # === final["state"] == "rows": build records from JS output ===
             records = []
+            for r in final["records"]:
+                def to_int(s):
+                    s = (s or "").strip()
+                    return int(s) if s.isdigit() else 0
 
-            table = soup.find("table", id="myClassListTable")
-            tables = [table] if table else soup.find_all("table")
-
-            for tbl in tables:
-                body = tbl.find("tbody")
-                if not body:
-                    continue
-                for row in body.find_all("tr"):
-                    cells = row.find_all("td")
-                    if len(cells) < 7:
-                        continue
-
-                    booking_id  = cells[0].get_text(strip=True)
-                    process     = cells[1].get_text(strip=True)
-                    date_str    = cells[2].get_text(strip=True)
-                    class_name  = cells[3].get_text(strip=True)
-                    booking_cnt = cells[4].get_text(strip=True)
-                    in_cnt      = cells[5].get_text(strip=True)
-                    out_cnt     = cells[6].get_text(strip=True)
-
-                    date_str_clean = re.sub(r"\s+", "", date_str)
-                    if not booking_id.isdigit():
-                        continue
-                    if not re.match(r"^\d{1,2}/\d{1,2}/\d{4}$", date_str_clean):
-                        continue
-                    if date_str_clean != formatted_date_input:
-                        continue
-
-                    def to_int(s):
-                        s = (s or "").strip()
-                        return int(s) if s.isdigit() else 0
-
-                    records.append({
-                        "date": date_str_clean,
-                        "class_id": booking_id,
-                        "class_code": process,
-                        "class_name": class_name,
-                        "present_count": str(to_int(in_cnt)),
-                        "booked_count": str(to_int(booking_cnt)),
-                        "out_count": str(to_int(out_cnt)),
-                        "total_students": str(VOCATIONAL_CAPACITY),
-                    })
+                records.append({
+                    "date": r["date"],
+                    "class_id": r["class_id"],
+                    "class_code": r["class_code"],
+                    "class_name": r["class_name"],
+                    "present_count": str(to_int(r["present_count"])),
+                    "booked_count": str(to_int(r["booked_count"])),
+                    "out_count": str(to_int(r["out_count"])),
+                    "total_students": str(VOCATIONAL_CAPACITY),
+                })
 
             if records:
                 print(f"✅ Found {len(records)} class(es)")
             else:
-                # Should be unreachable now — log loudly if it happens
-                print(f"⚠️ BUG: wait said 'rows' but parser yielded 0")
-                try:
-                    with open(f"debug_parse_{search_date.strftime('%Y%m%d')}.html", "w", encoding="utf-8") as f:
-                        f.write(driver.page_source)
-                except Exception:
-                    pass
+                # Should be truly unreachable now
+                print(f"⚠️ BUG: JS returned 'rows' with 0 records")
             return records
 
         except Exception as e:
@@ -412,7 +403,7 @@ def get_vocational_attendance_for_date(driver, search_date, url_path):
             else:
                 print(f"❌ Error: {e}")
                 return []
-
+                
 def get_vocational_attendance_for_range(driver, url_path, page_name):
     """Fetch vocational attendance for all configured dates (weekdays only, 1 month ahead)"""
     dates_to_check, start_date, end_date = get_dates_to_check()
