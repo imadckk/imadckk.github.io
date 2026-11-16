@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-16T07:07:02.757642",
+  "last_updated": "2026-11-16T08:07:48.989240",
   "date_range_checked": {
     "from": "16/11/2026",
     "months_ahead": 1,
@@ -35,7 +35,7 @@
         "class_code": "PSV II",
         "class_name": "PSV - I",
         "present_count": "0",
-        "booked_count": "16",
+        "booked_count": "17",
         "out_count": "0",
         "total_students": "50"
       },
@@ -67,7 +67,7 @@
         "class_code": "GDL II",
         "class_name": "GDL - I",
         "present_count": "0",
-        "booked_count": "1",
+        "booked_count": "2",
         "out_count": "0",
         "total_students": "50"
       },
