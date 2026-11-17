@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-17T00:05:38.526077",
+  "last_updated": "2026-11-17T01:05:40.296056",
   "date_range_checked": {
     "from": "17/11/2026",
     "months_ahead": 1,
@@ -13,7 +13,7 @@
         "class_code": "PSV II",
         "class_name": "E-hailing ll",
         "present_count": "0",
-        "booked_count": "47",
+        "booked_count": "50",
         "out_count": "0",
         "total_students": "50"
       },
@@ -29,6 +29,16 @@
       }
     ],
     "Bas Mini": [
+      {
+        "date": "25/11/2026",
+        "class_id": "31890",
+        "class_code": "PSV II",
+        "class_name": "PSV - I",
+        "present_count": "0",
+        "booked_count": "17",
+        "out_count": "0",
+        "total_students": "50"
+      },
       {
         "date": "10/12/2026",
         "class_id": "32183",
