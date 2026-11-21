@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-21T02:06:13.057136",
+  "last_updated": "2026-11-21T03:05:47.633845",
   "date_range_checked": {
     "from": "21/11/2026",
     "months_ahead": 1,
@@ -13,7 +13,7 @@
         "class_code": "PSV II",
         "class_name": "e-Hailing I",
         "present_count": "0",
-        "booked_count": "7",
+        "booked_count": "8",
         "out_count": "0",
         "total_students": "50"
       }
@@ -28,19 +28,29 @@
         "booked_count": "20",
         "out_count": "0",
         "total_students": "50"
-      },
-      {
-        "date": "10/12/2026",
-        "class_id": "32183",
-        "class_code": "PSV II",
-        "class_name": "PSV - I",
-        "present_count": "0",
-        "booked_count": "1",
-        "out_count": "0",
-        "total_students": "50"
       }
     ],
     "GDL": [
+      {
+        "date": "24/11/2026",
+        "class_id": "31892",
+        "class_code": "GDL II",
+        "class_name": "GDL - II",
+        "present_count": "0",
+        "booked_count": "50",
+        "out_count": "0",
+        "total_students": "50"
+      },
+      {
+        "date": "16/12/2026",
+        "class_id": "32180",
+        "class_code": "GDL II",
+        "class_name": "GDL - I",
+        "present_count": "0",
+        "booked_count": "11",
+        "out_count": "0",
+        "total_students": "50"
+      },
       {
         "date": "30/12/2026",
         "class_id": "32181",
