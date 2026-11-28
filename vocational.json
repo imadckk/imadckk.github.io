@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-28T05:04:44.766208",
+  "last_updated": "2026-11-28T05:42:27.887189",
   "date_range_checked": {
     "from": "28/11/2026",
     "months_ahead": 1,
@@ -18,39 +18,7 @@
         "total_students": "50"
       }
     ],
-    "Bas Mini": [
-      {
-        "date": "10/12/2026",
-        "class_id": "32183",
-        "class_code": "PSV II",
-        "class_name": "PSV - I",
-        "present_count": "0",
-        "booked_count": "5",
-        "out_count": "0",
-        "total_students": "50"
-      }
-    ],
-    "GDL": [
-      {
-        "date": "16/12/2026",
-        "class_id": "32180",
-        "class_code": "GDL II",
-        "class_name": "GDL - I",
-        "present_count": "0",
-        "booked_count": "20",
-        "out_count": "0",
-        "total_students": "50"
-      },
-      {
-        "date": "30/12/2026",
-        "class_id": "32181",
-        "class_code": "GDL II",
-        "class_name": "GDL - II",
-        "present_count": "0",
-        "booked_count": "0",
-        "out_count": "0",
-        "total_students": "50"
-      }
-    ]
+    "Bas Mini": [],
+    "GDL": []
   }
 }
